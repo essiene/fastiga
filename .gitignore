@@ -1,0 +1,12 @@
+docs
+dist
+build
+ClientFace/dist
+ClientFace/docs
+ClientFace/build
+*~
+*.vim
+*.swp
+*.swo
+*.class
+*.html

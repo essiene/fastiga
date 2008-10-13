@@ -1,0 +1,166 @@
+<project default="compile" basedir=".">
+    <description>Weaver generated build script</description>
+
+    <property file="build.properties"/>
+    <property file="${user.homedir}/.weaver/weaver.properties"/>
+    <property file="/etc/weaver/weaver.properties"/>
+
+    <path id="scala.classpath">
+        <pathelement location="${scala.home}/lib/scala-compiler.jar"/>
+        <pathelement location="${scala.home}/lib/scala-library.jar"/>
+    </path>
+
+    <path id="compile.classpath">
+
+        <fileset dir="${lib.dir}">
+            <include name="*.jar"/>
+        </fileset>
+
+        <pathelement location="${catalina.common.classes}"/>
+
+        <fileset dir="${catalina.common.lib}">
+            <include name="*.jar"/>
+        </fileset>
+
+        <fileset dir="${catalina.common.endorsed}">
+            <include name="*.jar"/>
+        </fileset>
+
+        <pathelement location="${catalina.shared.classes}"/>
+
+        <fileset dir="${catalina.shared.lib}">
+            <include name="*.jar"/>
+        </fileset>
+
+        <path refid="scala.classpath"/>
+    </path>
+
+
+
+    <path id="test.classpath">
+        <pathelement location="${test.dir}"/>
+        <pathelement location="${build.classes}"/>
+        <path refid="compile.classpath"/>
+    </path>
+
+
+    <target name="settings">
+        <echo message="project.name = ${project.name}"/>
+        <echo message=""/>
+        <echo message="document.root = ${document.root}"/>
+        <echo message="document.root.webinf = ${document.root.webinf}"/>
+        <echo message="src.dir = ${src.dir}"/>
+        <echo message="lib.dir = ${lib.dir}"/>
+        <echo message="build.dir = ${build.dir}"/>
+        <echo message="dist.dir = ${dist.dir}"/>
+        <echo message="test.dir = ${test.dir}"/>
+        <echo message="config.dir = ${config.dir}"/>
+    </target>
+
+    <taskdef resource="scala/tools/ant/antlib.xml">
+        <classpath refid="scala.classpath"/>
+    </taskdef>
+
+    <target name="init-project">
+        <mkdir dir="${document.root}"/>
+        <mkdir dir="${document.root.webinf}"/>
+        <mkdir dir="${src.dir}"/>
+        <mkdir dir="${lib.dir}"/>
+        <mkdir dir="${test.dir}"/>
+        <mkdir dir="${config.dir}"/>
+    </target>
+
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+
+
+    <target name="testclean">
+        <delete>
+            <fileset dir="${test.dir}">
+                <include name="*.class"/>
+            </fileset>
+        </delete>
+    </target>
+
+
+    <target name="distclean">
+        <delete dir="${dist.dir}"/>
+    </target>
+
+
+    <target name="resources">
+        <mkdir dir="${build.classes}"/>
+        <copy todir="${build.classes}" includeEmptyDirs="no">
+            <fileset dir="${src.dir}">
+                <include name="*.properties"/>
+                <include name="*.conf"/>
+                <include name="*.xml"/>
+            </fileset>
+        </copy>
+    </target>
+
+
+    <target name="compile">
+        <mkdir dir="${build.classes}"/>
+        <mkdir dir="${lib.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${build.classes}">
+            <classpath refid="compile.classpath"/>
+        </javac>
+        <scalac srcdir="${src.dir}" destdir="${build.classes}" classpathref="compile.classpath">
+            <include name="**/*.scala"/>
+        </scalac>
+    </target>
+
+
+    <target name="compiletest" depends="compile">
+        <mkdir dir="${test.dir}"/>
+        <javac srcdir="${test.dir}" destdir="${test.dir}">
+            <classpath refid="test.classpath"/>
+            <include name="**/*.java"/>
+        </javac>
+        <scalac srcdir="${test.dir}" destdir="${test.dir}">
+            <classpath refid="test.classpath"/>
+            <include name="**/*.scala"/>
+        </scalac>
+    </target>
+
+
+    <target name="test" depends="compiletest">
+        <junit printsummary="false" haltonfailure="no" showoutput="no" filtertrace="yes">
+            <classpath refid="test.classpath"/>
+
+            <batchtest fork="yes">
+                <formatter type="brief" usefile="false"/>
+                <fileset dir="${test.dir}" includes="**/*.class"/>
+            </batchtest>
+        </junit>
+    </target>
+
+
+    <target name="dist" depends="resources, compile">
+        <mkdir dir="${build.dir}"/>
+        <copy todir="${build.dir}">
+            <fileset dir="${document.root}"/>
+        </copy>
+
+        <mkdir dir="${build.lib}"/>
+        <copy todir="${build.lib}">
+            <fileset dir="${lib.dir}">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+
+        <mkdir dir="${dist.dir}"/>
+        <war basedir="${build.dir}" warfile="${dist.dir}/${project.name}.war" webxml="${document.root.webinf}/web.xml">
+        </war>
+    </target>
+
+    <target name="deploy" depends="dist">
+        <copy todir="${catalina.home}/webapps" file="${dist.dir}/${project.name}.war"/>
+    </target>
+
+    <target name="all" depends="clean, distclean, dist"/>
+    <target name="allclean" depends="clean, testclean, distclean"/>
+</project>
