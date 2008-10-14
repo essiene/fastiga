@@ -10,6 +10,10 @@
        konfirmagi 
     </description>
 
+    <listener>
+        <listener-class>BootStrapper</listener-class>
+    </listener>
+
     <servlet>
       <servlet-name>main</servlet-name>
       <servlet-class>Main</servlet-class>

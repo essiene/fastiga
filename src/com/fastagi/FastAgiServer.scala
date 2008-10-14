@@ -1,20 +1,23 @@
 package com.fastagi
 
-import scala.actors.Actor
-import scala.actors.Actor._
+import java.net._
 
-class FastAgiServer() extends Actor {
-    def act() {
-        loop {
-            react {
-                case Messages(data) =>
-                    data match {
-                        case null => sender ! Messages("Call with ?action=actionName")
-                        case _ => sender ! Messages("\nRequest: " + data + "\nResponse: Hello Servlet-Actor World\n")
-                    }
-                case _ =>
-                    println("Server: I recieve an unknown message....nothing to do")
-            }
+class FastAgiServer(port: Int) extends Thread {
+    val server: ServerSocket = new ServerSocket(port)
+    var session: Session = null
+
+    override def run(): Unit = {
+        while(true) {
+            println("Waiting for connection")
+            val client: Socket = server.accept()
+            println("Connected")
+            session = new Session(client)
+            session.start()
         }
+    }
+
+    def stopListening(): Unit = {
+        server.close()
+        println("Connection Closed")
     }
 }	
