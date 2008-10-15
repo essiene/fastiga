@@ -4,17 +4,27 @@ import scala.actors.Actor
 import scala.actors.Actor._
 
 class AppServer extends Actor {
+    val AGI_PACKAGE = "com.fastagi.scripts"    
+
     def act() {
         loop {
             react {
-                case App("PinMan", session:Session) =>
-                    new PinMan(session).start()
-                case App("Konfirm", session: Session) =>
-                    //new Konfirm(session).start()
-                case App("PreKonfirm", session: Session) =>
-                    //new PreKonfirm(session).start()
-                case App("Record", session: Session) =>
-                    //new Record(session).start()              
+                case App(name, session:Session) =>
+                    try {
+                        val scriptClass = Class.forName(AGI_PACKAGE + "." + name)                        
+                        val sessionClass = Class.forName("com.fastagi.Session")                    
+
+                        val constructor = scriptClass.getConstructor(Array(sessionClass))
+
+                        val script = constructor.newInstance(Array(session)).asInstanceOf[Actor]
+                        sender ! AppInstance(script)                        
+                        script.start()
+                    } catch {
+                        case e:Exception => e.printStackTrace()                  
+                        session ! CloseSession                      
+                    }
+                case _ =>
+                    //Unknown Message Type
             }
         }
     }

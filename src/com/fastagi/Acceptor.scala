@@ -3,7 +3,6 @@ package com.fastagi
 import scala.actors.Actor
 import scala.actors.Actor._
 import java.io._
-import java.util._
 import java.net._
 
 class Acceptor(port: Int, appServer:AppServer) extends Actor {
@@ -19,12 +18,13 @@ class Acceptor(port: Int, appServer:AppServer) extends Actor {
 //            println("Connected")           
             val session = new Session(client, appServer)
             session.start()
-            sessions.append(session)
+            sessions ::: List(session)
         }
     }
 
-    def stopListening(): Unit = {
+    def stop(): Unit = {
         this.isAlive = false
         this.sessions.foreach(s => s ! CloseSession)
+        this.exit()
     }
 }

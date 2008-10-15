@@ -9,4 +9,4 @@ case class App(name: String, session: Session)
 
 case class AppInstance(application: Actor)
 
-case class CloseSession(reason: String)
+case class CloseSession

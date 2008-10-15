@@ -1,14 +1,16 @@
-package com.fastagi
+package com.fastagi.scripts
 
 import scala.actors.Actor
 import scala.actors.Actor._
 import java.util.Vector
 
+import com.fastagi.Session
+
 class PinMan(session: Session) extends Actor {
     
     var agiRequests = new Vector[AgiRequest]()
     var first = new AgiRequest("START")
-
+    
     def act() {
         this.prepareRequests()
         session ! first
@@ -18,10 +20,9 @@ class PinMan(session: Session) extends Actor {
                     println(sender + ": " + agiResponse.response)
                     var nextRequest = this.parseResponse(agiResponse)
                     if(nextRequest != -1) session ! agiRequests.elementAt(nextRequest)
-                    else session ! new CloseSession("End Of Script")
+                    else session ! CloseSession
 
-                case close:CloseSession =>
-                    println("Closing: " + close.reason)
+                case CloseSession =>
                     exit()
 
                 case _ =>

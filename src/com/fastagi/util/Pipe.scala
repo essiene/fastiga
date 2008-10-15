@@ -8,6 +8,7 @@ class Pipe(client: Socket) {
     val in = client.getInputStream()
     val out = client.getOutputStream()
     val headers = new Hashtable[String, String]()
+    this.readHeader()
 
     def get(key: String) = headers.get(key)
 

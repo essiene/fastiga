@@ -19,6 +19,6 @@ class BootStrapper extends ServletContextListener {
 	}
 
     override def contextDestroyed(sce: ServletContextEvent) {        
-        server.stopListening()
+        server.stop()
     }
 }
