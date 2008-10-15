@@ -1,7 +1,6 @@
 package com.fastagi
 
-case class Messages(msg: Object)
+case class AgiResponse(request: Request, response: String)
+case class AgiRequest(command: String)
 
-case class Response(request: Object, response: Object)
-
-case class Request(action: String, script: String, session: Session)
+case class App(name: String, session: Session)

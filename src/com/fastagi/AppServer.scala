@@ -7,13 +7,13 @@ class AppServer extends Actor {
     def act() {
         loop {
             react {
-                case Request("New", "PinMan", session:Session) =>
+                case App("PinMan", session:Session) =>
                     new PinMan(session).start()
-                case Request("New", "Konfirm", session: Session) =>
+                case App("Konfirm", session: Session) =>
                     //new Konfirm(session).start()
-                case Request("New", "PreKonfirm", session: Session) =>
+                case App("PreKonfirm", session: Session) =>
                     //new PreKonfirm(session).start()
-                case Request("New", "Record", session: Session) =>
+                case App("Record", session: Session) =>
                     //new Record(session).start()              
             }
         }

@@ -8,69 +8,52 @@ import java.net._
 
 class Session(client: Socket, appServer: AppServer) extends Actor {
     
-    val is = client.getInputStream()
-    val os = client.getOutputStream()
-    val dico = new Hashtable[String, String]()
+    val in = client.getInputStream()
+    val out = client.getOutputStream()
+    val pipe = new Pipe(client)
+    val headers = new Hashtable[String, String]()
 
     def act() {
         this.readHeader()
 
-        val scriptName = this.dico.get("sname")
-        scriptName match {
-            case "pinman" =>
-                appServer ! new Request("New", "PinMan", this)
-            case "konfirm" =>
-                appServer ! new Request("New", "Konfirm", this)
-            case "prekonfirm" =>
-                appServer ! new Request("New", "PreKonfirm", this)
-            case "record" => 
-                appServer ! new Request("New", "Record", this)
-            case _ =>
-                appServer ! new Request("New", "Konfirm", this)
+        val scriptName = this.headers.get("sname")
+            appServer ! new App(scriptName, this)
         }
 
         loop {
             react {
-                case Messages(data) =>
-
-                data match {
-                    case "QUIT" =>
-                        println("Closing.......")
-                        client.close()
-                        println("Socket Closed")
-                        exit()
-
-                    case _ =>
-                        this.write(data.toString())
-                        sender ! new Response(data, this.read())
-                }
-
-                case _ => 
-                    this.echo("Unknown Request Format")
+                case Application =>
+                          this.application = ...
+                case AgiRequest(command) => 
+                          pipe.send(command)
+                          sender ! new AgiResponse(req, pipe.recv())
+                case CloseSession =>
+                          pipe.close()
+                          exit()
             }
         }
     }
 
     def echo(data: String): Unit = {
         val toSend = data + "\n"
-        os.write(toSend.getBytes())
-        os.flush()
+        out.write(toSend.getBytes())
+        out.flush()
     }
 
     def write(data: String): Unit = {
         val toSend = data + "\n"
-        os.write(toSend.getBytes())
-        os.flush()      
+        out.write(toSend.getBytes())
+        out.flush()      
     }
 
     def read(): String = {
-        val reader = new BufferedReader(new InputStreamReader(this.is))
+        val reader = new BufferedReader(new InputStreamReader(this.in))
         val line = reader.readLine()
         return line
     }
 
     def readHeader(): Unit = {
-        val reader = new BufferedReader(new InputStreamReader(this.is))
+        val reader = new BufferedReader(new InputStreamReader(this.in))
         var line = reader.readLine()
         
         var header = new Vector[String]()
@@ -89,9 +72,9 @@ class Session(client: Socket, appServer: AppServer) extends Actor {
             if(index > 0) {
                 val key = thisElement.substring(0, index)
                 val value = thisElement.substring((index + 1), thisElement.length())
-                this.dico.put(key, value)
+                this.headers.put(key, value)
             }                
         }
-        println(dico.toString())
+        println(headers.toString())
     }
 }
