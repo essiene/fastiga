@@ -19,16 +19,18 @@ class Session(client: Socket, appServer: AppServer) extends Actor {
 
         loop {
             react {
-                case appInstance: AppInstance =>
-                    this.application = appInstance.application
+                case AppInstance(application) =>
+                    if (this.application == null) 
+                      this.application = application
 
                 case agiRequest: AgiRequest => 
                     pipe.send(agiRequest.command)
                     sender ! new AgiResponse(agiRequest, pipe.recieve())
 
-                case close: CloseSession =>                    
+                case CloseSession =>                    
                     pipe.close()
-                    if(this.application != null) this.application ! new CloseSession("Socket Closed")
+                    if (this.application != null) 
+                      this.application ! new CloseSession("Socket Closed") 
                     exit()
             }
         }

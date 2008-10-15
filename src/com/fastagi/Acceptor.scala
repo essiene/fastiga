@@ -9,29 +9,22 @@ import java.net._
 class Acceptor(port: Int, appServer:AppServer) extends Actor {
 
     val server = new ServerSocket(port)
-    val sessionList = new Vector[Socket]()
+    val sessions = List[Session]()
+    var isAlive = true
 
     def act() {
-        while(true) {
-            println("Waiting for Connection....")
+        while(isAlive) {
+//            println("Waiting for Connection....")
             val client = server.accept()
-            println("Connected")           
+//            println("Connected")           
             val session = new Session(client, appServer)
-            sessionList.add(client)
             session.start()
+            sessions.append(session)
         }
     }
 
     def stopListening(): Unit = {
-        val elements = sessionList.elements()
-        try {
-            while(elements.hasMoreElements()) {
-                val a = elements.nextElement()
-                a.close()
-            }   
-            server.close()
-        } catch {
-            case e:Exception => e.printStackTrace()
-        }
+        this.isAlive = false
+        this.sessions.foreach(s => s ! CloseSession)
     }
 }
