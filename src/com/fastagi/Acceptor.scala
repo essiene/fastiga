@@ -6,7 +6,7 @@ import java.io._
 import java.util._
 import java.net._
 
-class Acceptor(port: Int) extends Actor {
+class Acceptor(port: Int, appServer:AppServer) extends Actor {
 
     val server = new ServerSocket(port)
     val sessionList = new Vector[Socket]()
@@ -16,7 +16,7 @@ class Acceptor(port: Int) extends Actor {
             println("Waiting for Connection....")
             val client = server.accept()
             println("Connected")           
-            val session = new Session(client)
+            val session = new Session(client, appServer)
             sessionList.add(client)
             session.start()
         }
