@@ -8,7 +8,7 @@ class BootStrapper extends ServletContextListener {
     val log: Logger = Logger.getLogger(this.getClass().getName());
     log.debug("Log4j Successfully Initialised in BootStrapper");
 
-	val server = new FastAgiServer(4573);
+	val server = new Acceptor(4573);
     log.debug("Server Object gotten Successsfully");
 
     override def contextInitialized(sce: ServletContextEvent) {
