@@ -4,14 +4,14 @@ import scala.actors.Actor
 import scala.actors.Actor._
 
 class AppServer extends Actor {
-    val AGI_PACKAGE = "com.fastagi.scripts"    
+    val SCRIPTS_PACKAGE = "com.fastagi.scripts"    
 
     def act() {
         loop {
             react {
                 case App(name, session:Session) =>
                     try {
-                        val scriptClass = Class.forName(AGI_PACKAGE + "." + name)                        
+                        val scriptClass = Class.forName(SCRIPTS_PACKAGE + "." + name)                        
                         val sessionClass = Class.forName("com.fastagi.Session")                    
 
                         val constructor = scriptClass.getConstructor(Array(sessionClass))

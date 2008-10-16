@@ -1,13 +1,14 @@
 package com.fastagi.util
 
 import java.io._
-import java.util._
 import java.net._
+import java.util.Hashtable
 
 class Pipe(client: Socket) {    
     val in = client.getInputStream()
     val out = client.getOutputStream()
     val headers = new Hashtable[String, String]()
+
     this.readHeader()
 
     def get(key: String) = headers.get(key)
@@ -23,32 +24,20 @@ class Pipe(client: Socket) {
     def readHeader(): Unit = {
         var line = this.recieve()
         
-        var header = new Vector[String]()
+        var header = List[String]()
         while(line != "") {
-            header.add(line)
+            header = header ::: List(line)
             line = this.recieve()
         }
-        this.parseHeader(header);
+
+        header.foreach(this.getKeyValue)
+        println(this.headers)
     }
 
-    def parseHeader(header: Vector[String]): Unit = {
-        val elements = header.elements()
-        while(elements.hasMoreElements()) {
-            val thisElement = elements.nextElement()
-            val index = thisElement.indexOf(":")
-            if(index > 0) {
-                val key = thisElement.substring(0, index)
-                val value = thisElement.substring((index + 1), thisElement.length())
-                this.headers.put(key, value)
-            }                
-        }
-        println(headers.toString())
-    }
-
-    def echo(command: String): Unit = {
-        val toSend = command + "\n"
-        out.write(toSend.getBytes())
-        out.flush()
+    def getKeyValue(line: String) {       
+        val key = line.substring(0, line.indexOf(":"))
+        val value = line.substring((line.indexOf(":") + 1), line.length())
+        this.headers.put(key, value)
     }
 
     def send(command: String): Unit = {

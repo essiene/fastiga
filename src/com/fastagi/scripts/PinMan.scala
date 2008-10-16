@@ -2,13 +2,12 @@ package com.fastagi.scripts
 
 import scala.actors.Actor
 import scala.actors.Actor._
-import java.util.Vector
 
 import com.fastagi.Session
 
 class PinMan(session: Session) extends Actor {
     
-    var agiRequests = new Vector[AgiRequest]()
+    var agiRequests = List[AgiRequest]()
     var first = new AgiRequest("START")
     
     def act() {
@@ -19,7 +18,7 @@ class PinMan(session: Session) extends Actor {
                 case agiResponse:AgiResponse =>                    
                     println(sender + ": " + agiResponse.response)
                     var nextRequest = this.parseResponse(agiResponse)
-                    if(nextRequest != -1) session ! agiRequests.elementAt(nextRequest)
+                    if(nextRequest != -1) session ! agiRequests(nextRequest)
                     else session ! CloseSession
 
                 case CloseSession =>
@@ -32,10 +31,10 @@ class PinMan(session: Session) extends Actor {
     }
 
     def prepareRequests() {
-        agiRequests.add(new AgiRequest("GET DATA")) //0
-        agiRequests.add(new AgiRequest("LOAD FILE")) //1
-        agiRequests.add(new AgiRequest("PLAY FILE")) //2
-        agiRequests.add(new AgiRequest("HANG UP")) //3
+        agiRequests = agiRequests ::: List(new AgiRequest("GET DATA"))
+        agiRequests = agiRequests ::: List(new AgiRequest("LOAD FILE"))
+        agiRequests = agiRequests ::: List(new AgiRequest("PLAY FILE"))
+        agiRequests = agiRequests ::: List(new AgiRequest("HANG UP"))
     }
 
     def parseResponse(agiResponse: AgiResponse): Int = {

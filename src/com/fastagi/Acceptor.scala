@@ -8,17 +8,15 @@ import java.net._
 class Acceptor(port: Int, appServer:AppServer) extends Actor {
 
     val server = new ServerSocket(port)
-    val sessions = List[Session]()
+    var sessions = List[Session]()
     var isAlive = true
 
     def act() {
         while(isAlive) {
-//            println("Waiting for Connection....")
             val client = server.accept()
-//            println("Connected")           
             val session = new Session(client, appServer)
             session.start()
-            sessions ::: List(session)
+            sessions = sessions ::: List(session)
         }
     }
 
