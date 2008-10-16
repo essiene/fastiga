@@ -18,8 +18,10 @@ class Session(client: Socket, appServer: AppServer) extends Actor {
         loop {
             react {
                 case AppInstance(application) =>
-                    if (this.application == null) 
+                    if (this.application == null) {
                       this.application = application
+                      this.application.start()
+                    }
 
                 case agiRequest: AgiRequest => 
                     pipe.send(agiRequest.command)
