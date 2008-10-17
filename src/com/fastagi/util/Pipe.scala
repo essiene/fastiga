@@ -37,7 +37,7 @@ class Pipe(client: Socket) {
     def getKeyValue(line: String) {       
         val key = line.substring(0, line.indexOf(":"))
         val value = line.substring((line.indexOf(":") + 1), line.length())
-        this.headers.put(key, value)
+        this.headers.put(key, value.trim)
     }
 
     def send(command: String): Unit = {

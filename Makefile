@@ -1,4 +1,7 @@
-all: run
+all: compile
 
-run:
+compile:
+	@ant all
+
+run: compile
 	scala -cp build/WEB-INF/classes Run
