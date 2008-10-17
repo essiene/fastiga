@@ -3,9 +3,7 @@ package com.fastagi
 import scala.actors.Actor
 import scala.actors.Actor._
 
-class AppServer extends Actor {
-    val SCRIPTS_PACKAGE = "com.fastagi.scripts"    
-
+class AppServer(appPackage: String) extends Actor {
     def act() {
         loop {
             react {
@@ -27,5 +25,11 @@ class AppServer extends Actor {
                     //Unknown Message Type
             }
         }
+    }
+
+    def getApp(appName: String, session: Session): Actor = {      
+        val agiAppClass = Class.forName(this.appPackage + "." + appName)
+        val constructor = agiAppClass.getConstructor(Array(session.getClass))
+        constructor.newInstance(Array(session)).asInstanceOf[Actor]
     }
 }
