@@ -8,6 +8,9 @@ import com.fastagi.Session
 class PinMan(session: Session) extends Actor {
     
     var agiRequests = List[AgiRequest]()
+    var accountNumber = ""
+    var pin = ""
+    var any = ""
     var first = new AgiRequest("START")
     
     def act() {
@@ -16,7 +19,6 @@ class PinMan(session: Session) extends Actor {
         loop {
             react {
                 case agiResponse:AgiResponse =>                    
-                    println(sender + ": " + agiResponse.response)
                     var nextRequest = this.parseResponse(agiResponse)
                     if(nextRequest != -1) session ! agiRequests(nextRequest)
                     else session ! CloseSession
@@ -31,28 +33,48 @@ class PinMan(session: Session) extends Actor {
     }
 
     def prepareRequests() {
-        agiRequests = agiRequests ::: List(new AgiRequest("GET DATA"))
-        agiRequests = agiRequests ::: List(new AgiRequest("LOAD FILE"))
-        agiRequests = agiRequests ::: List(new AgiRequest("PLAY FILE"))
+        agiRequests = agiRequests ::: List(new AgiStreamFile("hello", "", ""))
+        agiRequests = agiRequests ::: List(new AgiGetData("enter-your-account-number", "-1", "10"))     
+        agiRequests = agiRequests ::: List(new AgiGetData("enter-your-pin", "-1", "4"))     
+        agiRequests = agiRequests ::: List(new AgiGetData("silence/10", "-1", "1"))       
         agiRequests = agiRequests ::: List(new AgiRequest("HANG UP"))
     }
 
+    /**
+        Would prefer to call the commands directly instead of calling
+            return (commandNumber). It kinda sucks trying to figure which
+            command is which, even for this four commands
+    */
+
     def parseResponse(agiResponse: AgiResponse): Int = {
         val request = agiResponse.request
-        val data = "1234"
-        request.command match {
-            case "START" => return 1
-            case "LOAD FILE" =>
-                if(agiResponse.response == "1") return 0
-                else return 3
-            case "GET DATA" =>
-                if(agiResponse.response.equals(data)) return 2
-                else return 3
-            case "PLAY FILE" =>
-                if(agiResponse.response == "1") return 3
-                else return -1
-            case "HANG UP" => 
-                return -1                
+        request match {
+            case AgiRequest("START") => return 0
+
+            case AgiStreamFile(fileName, escapeDigits, sampleOffset) =>            
+                if(!agiResponse.response.equals("-1")) 
+                    return 1 //account number
+                return 4 //hangup
+
+            case AgiGetData("enter-your-account-number", timeout, maxDigits) =>
+                this.accountNumber = this.accountNumber + agiResponse.response
+                println(this.accountNumber)
+                return 2 //pin
+
+            case AgiGetData("enter-your-pin", timeout, maxDigits) =>
+                this.pin = this.pin + agiResponse.response
+                println(this.pin)
+                return 3 //silence/10
+
+            case AgiGetData("silence/10", timeout, maxDigits) =>
+                if(!agiResponse.response.equals("")) {
+                    this.any = this.any + agiResponse.response
+                    return 3
+                } else {
+                    println(this.any)
+                    return 4
+                }
+
             case _ =>
                 return -1
         }

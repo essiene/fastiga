@@ -178,11 +178,7 @@
 	<jar destfile="${project.name}.jar" basedir="${build.classes}">
 		<manifest>
 			<attribute name="Built-By" value="${project.author}"/>
-<<<<<<< HEAD:build.xml
-			<!--<attribute name="Sealed" value="true"/>-->
-=======
 			<attribute name="Sealed" value="false"/>
->>>>>>> master:build.xml
 			<attribute name="Main-Class" value="${main.class}"/>
 			<attribute name="Class-Path" value="${manifest.jarlist}"/>
 		</manifest>
