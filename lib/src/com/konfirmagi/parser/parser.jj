@@ -1,0 +1,70 @@
+options {
+   STATIC = false;
+   LOOKAHEAD = 2;
+}
+
+PARSER_BEGIN(Parser)
+    package com.konfirmagi.parser;
+    
+    public class Parser {        
+        public static void main(String args[]) {            
+            Parser parser = new Parser(System.in);
+            try {
+                parser.parseOneLine();
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+PARSER_END(Parser)
+
+SKIP: {"\n"|"\r"|"\r\n"|"\t"}
+TOKEN: {<EOL: "^">}
+TOKEN: {<QUIT: "QUIT" | "EXIT" | "quit" | "exit">}
+TOKEN: {<CODE: "200">}
+TOKEN: {<SPACE: " ">}
+TOKEN: {<RESULT: "result">}
+TOKEN: {<EQUALS: "=">}
+TOKEN: {<DIGIT: (["0"-"9"])+>}
+TOKEN: {<SIGN: "-">}
+TOKEN: {<BROPEN: "(">}
+TOKEN: {<BRCLOSE: ")">}
+TOKEN: {<ID: (<LETTER>)+>}
+TOKEN: {<#LETTER: ["a"-"z","A"-"Z"]>}
+
+void parseOneLine() throws Exception:
+{
+   Token result;
+   Token rvalue;
+   Token sign;
+}
+{
+    <CODE>(<SPACE>)+result=<RESULT>(<SPACE>)*<EQUALS>(<SPACE>)*(<SIGN>)?rvalue=<DIGIT>( (<SPACE>)+ ((getOthers())+)*(getExtra())* )*<EOL>
+    {
+            System.out.println("Parsed");
+    }
+}
+
+void getOthers():
+{
+    Token others;
+    Token ovalue;
+}
+{
+    others=<ID>(<SPACE>)*<EQUALS>(<SPACE>)*(<SIGN>)?ovalue=<DIGIT>
+    {
+        System.out.println(others.toString());
+        System.out.println(ovalue.toString());
+    }
+}
+
+void getExtra():
+{
+    Token extra;
+}
+{
+    <BROPEN>extra=<ID><BRCLOSE>
+    {
+        System.out.println(extra.toString());
+    }
+}
