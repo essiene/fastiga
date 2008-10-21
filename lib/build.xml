@@ -104,7 +104,7 @@
         <javacc 
             static="false" 
             target="${javacc.target}"
-            javacchome="${weaver.lib}/java"/>
+            javacchome="${javacc.home}"/>
     </target>
 
     <target name="compile-with-parser" depends="parsergen">
@@ -188,7 +188,6 @@
         </javadoc>
     </target>
 
-    <target name="all-with-parser" depends="clean, distclean, dist-with-parser"/>
-    <target name="all" depends="clean, distclean, dist"/>
+    <target name="all" depends="clean, distclean, dist-with-parser"/>
     <target name="allclean" depends="clean, testclean, distclean"/>
 </project>

@@ -41,7 +41,18 @@ Hashtable parseOneLine() throws Exception:
    Token sign;
 }
 {
-    <CODE>(<SPACE>)+<RESULT>(<SPACE>)*<EQUALS>(<SPACE>)*(<SIGN>)?rvalue=<DIGIT>( (<SPACE>)+(getOthers())?<BROPEN>(getData())+<BRCLOSE> )*<EOF>
+    <CODE>
+        (<SPACE>)+ 
+    <RESULT> (<SPACE>)* <EQUALS> (<SPACE>)* (<SIGN>)? rvalue=<DIGIT>
+    ( 
+     (<SPACE>)+
+     (getOthers())? 
+     <BROPEN> 
+        (getData())+
+     <BRCLOSE> 
+     )*
+        
+    <EOF>
     {
         table.put("data", data.toString());
         table.put("result", rvalue.toString());
@@ -55,7 +66,7 @@ void getOthers():
     Token ovalue;
 }
 {
-    others=<ID>(<SPACE>)*<EQUALS>(<SPACE>)*(<SIGN>)?ovalue=<DIGIT>
+    others=<ID> (<SPACE>)* <EQUALS> (<SPACE>)* (<SIGN>)? ovalue=<DIGIT>
     {
         table.put(others.toString(), ovalue.toString());
     }
@@ -66,12 +77,13 @@ void getData():
     Token datum;
 }
 {
-    datum=<DATA>
-    {            
+    datum=<DATA> {            
         data += datum.toString();
-    }|
-    datum=<DIGIT>
-    {
+    }
+    
+    |
+
+    datum=<DIGIT> {
         data += datum.toString();
     }
 }

@@ -10,3 +10,4 @@ ClientFace/build
 *.swo
 *.class
 *.html
+lib/src/com/konfirmagi/parser/*.java
