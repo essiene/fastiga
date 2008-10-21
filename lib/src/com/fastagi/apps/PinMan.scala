@@ -1,4 +1,4 @@
-package com.fastagi.scripts
+package com.fastagi.apps
 
 import scala.actors.Actor
 import scala.actors.Actor._

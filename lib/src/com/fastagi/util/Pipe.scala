@@ -10,6 +10,9 @@ class Pipe(client: Socket) {
     val out = client.getOutputStream()
     val headers = new Hashtable[String, String]()
     val reader = new BufferedReader(new InputStreamReader(this.in))
+    var result = ""
+    var data = ""
+    var endpoint = ""
 
     this.readHeader()
 
@@ -24,8 +27,11 @@ class Pipe(client: Socket) {
 
     def parse(line: String): AgiResponse = {
         val parser = new Parser(new StringReader(line))
-        val table = parser.parseOneLine()
-        return new AgiResponse(table.get("result"), table.get("data"), table.get("endpoint"))
+        val table = parser.parseOneLine()        
+        if(table.containsKey("result")) result = table.get("result").toString()
+        if(table.containsKey("data")) result = table.get("data").toString()
+        if(table.containsKey("endpoint")) result = table.get("endpoint").toString()
+        return new AgiResponse(result, data, endpoint)
     }
     
     def readHeader(): Unit = {
