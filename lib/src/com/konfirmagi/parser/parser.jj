@@ -5,8 +5,12 @@ options {
 
 PARSER_BEGIN(Parser)
     package com.konfirmagi.parser;
-    
+
+    import java.util.*;
+
     public class Parser {        
+        Hashtable table = new Hashtable();
+        String data = "";
         public static void main(String args[]) {            
             Parser parser = new Parser(System.in);
             try {
@@ -19,8 +23,6 @@ PARSER_BEGIN(Parser)
 PARSER_END(Parser)
 
 SKIP: {"\n"|"\r"|"\r\n"|"\t"}
-TOKEN: {<EOL: "^">}
-TOKEN: {<QUIT: "QUIT" | "EXIT" | "quit" | "exit">}
 TOKEN: {<CODE: "200">}
 TOKEN: {<SPACE: " ">}
 TOKEN: {<RESULT: "result">}
@@ -29,19 +31,21 @@ TOKEN: {<DIGIT: (["0"-"9"])+>}
 TOKEN: {<SIGN: "-">}
 TOKEN: {<BROPEN: "(">}
 TOKEN: {<BRCLOSE: ")">}
-TOKEN: {<ID: (<LETTER>)+>}
+TOKEN: {<ID: "endpoint">}
+TOKEN: {<DATA: ~[]>}
 TOKEN: {<#LETTER: ["a"-"z","A"-"Z"]>}
 
-void parseOneLine() throws Exception:
+Hashtable parseOneLine() throws Exception:
 {
-   Token result;
    Token rvalue;
    Token sign;
 }
 {
-    <CODE>(<SPACE>)+result=<RESULT>(<SPACE>)*<EQUALS>(<SPACE>)*(<SIGN>)?rvalue=<DIGIT>( (<SPACE>)+ ((getOthers())+)*(getExtra())* )*<EOL>
+    <CODE>(<SPACE>)+<RESULT>(<SPACE>)*<EQUALS>(<SPACE>)*(<SIGN>)?rvalue=<DIGIT>( (<SPACE>)+(getOthers())?<BROPEN>(getData())+<BRCLOSE> )*<EOF>
     {
-            System.out.println("Parsed");
+        table.put("data", data.toString());
+        table.put("result", rvalue.toString());
+        return table;
     }
 }
 
@@ -53,18 +57,21 @@ void getOthers():
 {
     others=<ID>(<SPACE>)*<EQUALS>(<SPACE>)*(<SIGN>)?ovalue=<DIGIT>
     {
-        System.out.println(others.toString());
-        System.out.println(ovalue.toString());
+        table.put(others.toString(), ovalue.toString());
     }
 }
 
-void getExtra():
+void getData():
 {
-    Token extra;
+    Token datum;
 }
 {
-    <BROPEN>extra=<ID><BRCLOSE>
+    datum=<DATA>
+    {            
+        data += datum.toString();
+    }|
+    datum=<DIGIT>
     {
-        System.out.println(extra.toString());
+        data += datum.toString();
     }
 }

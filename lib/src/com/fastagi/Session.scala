@@ -25,7 +25,7 @@ class Session(client: Socket, appServer: AppServer) extends Actor {
 
                 case agiRequest: AgiRequest => 
                     pipe.send(agiRequest.command)
-                    sender ! AgiResponse(agiRequest, pipe.recieve())
+                    sender ! pipe.receive()
 
                 case CloseSession =>                                     
                     pipe.close()
