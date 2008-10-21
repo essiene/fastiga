@@ -28,9 +28,12 @@ class Pipe(client: Socket) {
     def parse(line: String): AgiResponse = {
         val parser = new Parser(new StringReader(line))
         val table = parser.parseOneLine()        
-        if(table.containsKey("result")) result = table.get("result").toString()
-        if(table.containsKey("data")) result = table.get("data").toString()
-        if(table.containsKey("endpoint")) result = table.get("endpoint").toString()
+        if(table.containsKey("result")) 
+            result = table.get("result").toString()
+        if(table.containsKey("data")) 
+            data = table.get("data").toString()
+        if(table.containsKey("endpoint")) 
+            endpoint = table.get("endpoint").toString()
         return new AgiResponse(result, data, endpoint)
     }
     

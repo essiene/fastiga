@@ -41,18 +41,12 @@ Hashtable parseOneLine() throws Exception:
    Token sign;
 }
 {
-    <CODE>
-        (<SPACE>)+ 
-    <RESULT> (<SPACE>)* <EQUALS> (<SPACE>)* (<SIGN>)? rvalue=<DIGIT>
-    ( 
-     (<SPACE>)+
-     (getOthers())? 
-     <BROPEN> 
-        (getData())+
-     <BRCLOSE> 
-     )*
-        
-    <EOF>
+    <CODE> (<SPACE>)+ <RESULT> (<SPACE>)* <EQUALS> (<SPACE>)* (<SIGN>)? rvalue=<DIGIT> 
+        (
+         (<SPACE>)+
+          (getOthers())?
+          (<BROPEN>(getData())+<BRCLOSE>)?
+        )?<EOF>
     {
         table.put("data", data.toString());
         table.put("result", rvalue.toString());

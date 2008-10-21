@@ -7,43 +7,64 @@ import com.fastagi.Session
 class PinMan(session: Session) extends Actor {
     
     var agiRequests = List[AgiRequest]()
+    var accountNumber = ""
+    var pin = ""
+    var newPin = ""
+    var newPin2 = ""
     
     def act() {
-        this.playFile("hello")
-
-        val account_number = this.getData("account-number")
-        val pin = this.getData("enter-pin")
-        val validated = this.validate(account_number, pin)
-
-        if(validated) {
-            val pin = this.getData("enter-new-pin")
-            val pin2 = this.getData("enter-pin-again")
-            if(matched(pin, pin2)) {
-                this.updateDB(pin)
-                session ! CloseSession
-            }
-        }
-
+        this.playHello("hello")
     }
 
-    def playFile(fileName: String): String = {
+    def playHello(fileName: String) = {
         rpc(AgiStreamFile(fileName, "", ""))
-        react {
+        receive {
             case AgiResponse(result, data, endpoint) =>
-                return result
-            case _ =>
-                this.exit()
+                println("hello")                
+                this.getAccountNumber("enter-account-number")
+        }                
+    }
+
+    def getAccountNumber(fileName: String) = {
+        rpc(AgiGetData(fileName, "", "4"))
+        receive {
+            case AgiResponse(result, data, endpoint) =>                
+                println(result)
+                this.accountNumber = result
+                this.getPin("enter-pin")
+        }        
+    }
+
+    def getPin(fileName: String) = {
+        rpc(AgiGetData(fileName, "", "4"))
+        receive {
+            case AgiResponse(result, data, endpoint) =>                
+                println(result)
+                this.pin = result
+                if(this.validate(this.accountNumber, this.pin))
+                    this.getNewPin("enter-pin")
         }
     }
 
-    def getData(fileName: String): String = {
+    def getNewPin(fileName: String) = {
         rpc(AgiGetData(fileName, "", "4"))
-        react {
-            case AgiResponse(result, data, endpoint) =>
-                return result
-            case _ =>
-                this.exit()
-        }
+        receive {
+            case AgiResponse(result, data, endpoint) =>                
+                println(result)
+                this.newPin = result
+                this.getNewPinAgain("enter-new-pin-again")
+        }       
+    }
+
+    def getNewPinAgain(fileName: String) = {
+        rpc(AgiGetData(fileName, "", "4"))
+        receive {
+            case AgiResponse(result, data, endpoint) =>                
+                println(result)
+                this.newPin2 = result
+                if(this.matched(this.newPin, this.newPin2)) 
+                    this.updateDB(this.newPin)
+        }       
     }
 
     def validate(account_number: String, pin: String): boolean = {
@@ -59,6 +80,6 @@ class PinMan(session: Session) extends Actor {
     }
   
     def rpc(request: AgiRequest) = {
-        this.session ! request        
+        this.session ! request
     }
 }
