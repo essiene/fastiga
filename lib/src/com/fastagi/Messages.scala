@@ -22,3 +22,26 @@ case class AgiStreamFile(fileName: String, escapeDigits: String, sampleOffset: S
 case class AgiGetData(fileName: String, timeout: String, maxDigits: String) extends AgiRequest("") {
     this.command = "GET DATA " + fileName + " " + timeout + " " + maxDigits + "\n"
 }
+
+case class AgiGetChannelVariable(varName: String) extends AgiRequest("") {
+    this.command = "GET VARIABLE " + varName + "\n"
+}
+
+case class AgiRecordFile(fileName: String, 
+                         format: String, 
+                         esc_digits: String, 
+                         timeout: String, 
+                         offset: String, 
+                         beep: String, 
+                         silence: String) extends AgiRequest("") {
+    this.command = "RECORD FILE " + 
+                    fileName + " " + 
+                    format + " " + 
+                    esc_digits + " " + 
+                    timeout + " " + 
+                    offset + " " + 
+                    beep + " " + 
+                    silence + "\n"
+
+    def this(fileName: String, format: String, esc_digits: String, timeout: String) = this(fileName, format, esc_digits, timeout, "", "", "")
+}
