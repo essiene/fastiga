@@ -18,11 +18,12 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
         this.start("hello")
     }
 
+
     def start(fileName: String): Unit = {
         this.rpc(AgiStreamFile(fileName, "", "")) match {        
             case AgiResponse(result, data, endpoint) =>
-                this.accountNumber = AgiUtils.getChannelVariable("extra", this)
-                this.callid = AgiUtils.getChannelVariable("callid", this)
+                this.accountNumber = this.getAccountNumber//AgiUtils.getChannelVariable("extra", this)
+                this.callid = this.getCallID//AgiUtils.getChannelVariable("callid", this)
 
                 if(!this.callid.equals("Null")) {
                     this.userPin = AgiUtils.getData("enter-pin", this)
@@ -41,6 +42,14 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
                     session ! CloseSession
                 }
         }     
+    }
+
+    def getAccountNumber(): String = {
+        "1011001"
+    }
+
+    def getCallID(): String = {
+        "1212121"
     }
 
     def restart(fileName: String) = this.start(fileName)

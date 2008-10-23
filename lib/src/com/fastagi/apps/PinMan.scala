@@ -5,6 +5,7 @@ import scala.actors.Actor._
 import com.fastagi.Session
 import com.fastagi.AgiTrait
 import com.fastagi.util.AgiUtils
+import com.fastagi.apps.util.JSONPipe
 
 class PinMan(session: Session) extends Actor with AgiTrait {
     
@@ -28,7 +29,7 @@ class PinMan(session: Session) extends Actor with AgiTrait {
                     this.newPin2 = AgiUtils.getData("new-pin-again", this)
                     
                     if(this.matched(this.newPin, this.newPin2)) {
-                        this.updateDB(this.newPin)
+                        this.updateDB(this.accountNumber, this.newPin)
                     }
 
                 }
@@ -36,14 +37,18 @@ class PinMan(session: Session) extends Actor with AgiTrait {
     }
 
     def validate(account_number: String, pin: String): boolean = {
-        return true
+        JSONPipe.parse("http://localhost:8080/JAYSON/Main?action=validateuser&account_number="+account_number+"&pin="+pin)
+        val status = JSONPipe.get("Status")
+        if(status.equals("OK"))
+            return true
+        return false            
     }
 
     def matched(pin: String, pin2: String): boolean = {
         return true
     }
 
-    def updateDB(pin: String, account_number: String): boolean = {
+    def updateDB(account_number: String, pin: String): boolean = {
         session ! CloseSession
         this.exit()
         return true
