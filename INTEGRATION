@@ -1,0 +1,20 @@
+PIN MANAGEMENT
+    request: validateuser/account_number/pin
+    response: ok/fail
+
+    request: changeuserpin/account_number/newpin
+    response: ok/fail
+
+PRE-KONFIRM
+    request: validate/account_number/pin
+    response: ok/fail
+
+    request: prekonfirm/account_number/cheque_number/action
+    response: ok/fail
+
+KONFIRM
+    request: validate/account_number/pin
+    response: ok/fail
+
+    request: konfirm/account_number/pin/action
+    response ok/fail

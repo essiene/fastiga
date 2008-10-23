@@ -21,13 +21,13 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     def start(fileName: String): Unit = {
         this.rpc(AgiStreamFile(fileName, "", "")) match {        
             case AgiResponse(result, data, endpoint) =>
-                this.dbPin = AgiUtils.getChannelVariable("extra", this)
+                this.accountNumber = AgiUtils.getChannelVariable("extra", this)
                 this.callid = AgiUtils.getChannelVariable("callid", this)
 
                 if(!this.callid.equals("Null")) {
                     this.userPin = AgiUtils.getData("enter-pin", this)
 
-                    if(validate(dbPin, userPin)) {
+                    if(validate(accountNumber, userPin)) {
                         this.playCachedFile(this.callid)
                     } else {
                         AgiUtils.playFile("invalid-pin-entered", this)
@@ -70,7 +70,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
         return true
     }    
 
-    def validate(dbPin: String, userPin: String): boolean = {
+    def validate(accountNumber: String, userPin: String): boolean = {
         return true
     }
 

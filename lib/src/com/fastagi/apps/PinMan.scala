@@ -43,7 +43,7 @@ class PinMan(session: Session) extends Actor with AgiTrait {
         return true
     }
 
-    def updateDB(pin: String): boolean = {
+    def updateDB(pin: String, account_number: String): boolean = {
         session ! CloseSession
         this.exit()
         return true
