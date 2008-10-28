@@ -19,7 +19,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
 
 
     def start(fileName: String): Unit = {
-        this.rpc(AgiStreamFile(fileName, "", "")) match {        
+        this.rpc(AgiStreamFile(fileName, "#", "")) match {        
             case AgiResponse(result, data, endpoint) =>
                 this.accountNumber = this.getAccountNumber//AgiUtils.getChannelVariable("extra", this)
                 this.callid = this.getCallID//AgiUtils.getChannelVariable("callid", this)

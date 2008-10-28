@@ -12,7 +12,7 @@ class Session(client: Socket, appServer: AppServer) extends Actor {
 
     def act() {
         val pipe = new Pipe(client)
-        val scriptName = pipe.get("sname")
+        val scriptName = pipe.get("agi_network_script")
         appServer ! new App(scriptName, this)
 
         loop {

@@ -31,17 +31,17 @@ TOKEN: {<DIGIT: (["0"-"9"])+>}
 TOKEN: {<SIGN: "-">}
 TOKEN: {<BROPEN: "(">}
 TOKEN: {<BRCLOSE: ")">}
-TOKEN: {<ID: "endpoint">}
+TOKEN: {<ID: "endpos">}
 TOKEN: {<DATA: ~[]>}
 TOKEN: {<#LETTER: ["a"-"z","A"-"Z"]>}
 
 Hashtable parseOneLine() throws Exception:
 {
    Token rvalue;
-   Token sign;
+   Token sign = null;
 }
 {
-    <CODE> (<SPACE>)+ <RESULT> (<SPACE>)* <EQUALS> (<SPACE>)* (<SIGN>)? rvalue=<DIGIT> 
+    <CODE> (<SPACE>)+ <RESULT> (<SPACE>)* <EQUALS> (<SPACE>)* (sign=<SIGN>)? rvalue=<DIGIT> 
         (
          (<SPACE>)+
           (getOthers())?
@@ -49,7 +49,10 @@ Hashtable parseOneLine() throws Exception:
         )?<EOF>
     {
         table.put("data", data.toString());
-        table.put("result", rvalue.toString());
+        String value = rvalue.toString();
+        if(sign != null)
+            value = sign.toString() + rvalue.toString();       
+        table.put("result", value.toString());
         return table;
     }
 }

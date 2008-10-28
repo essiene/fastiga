@@ -18,7 +18,7 @@ class PinMan(session: Session) extends Actor with AgiTrait {
     }
 
     def start(fileName: String) = {
-        rpc(AgiStreamFile(fileName, "", "")) match {        
+        rpc(AgiStreamFile(fileName, "\"\"", "")) match {        
             case AgiResponse(result, data, endpoint) =>
                 this.accountNumber = agiUtils.getData("enter-account-number", this)
 
@@ -31,11 +31,11 @@ class PinMan(session: Session) extends Actor with AgiTrait {
                     if(this.matched(this.newPin, this.newPin2))                     
                         this.updateDB()
                     else {
-                        rpc(AgiStreamFile("pin-mismatch", "", ""))
+                        rpc(AgiStreamFile("pin-mismatch", "\"\"", ""))
                         session ! CloseSession
                     }
                 } else {
-                    rpc(AgiStreamFile("invalid-account-number", "", ""))
+                    rpc(AgiStreamFile("invalid-account-number", "\"\"", ""))
                     session ! CloseSession
                 }
         }                

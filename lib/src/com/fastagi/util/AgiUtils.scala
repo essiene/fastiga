@@ -23,7 +23,7 @@ class AgiUtils {
     }
 
     def playFile(fileName: String, app: AgiTrait): String = {
-        app.rpc(AgiStreamFile(fileName, "", "")) match {
+        app.rpc(AgiStreamFile(fileName, "#", "")) match {
             case AgiResponse(result, data, endpoint) =>
                 return result
         }
