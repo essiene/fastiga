@@ -5,6 +5,9 @@ PIN MANAGEMENT
     request: changeuserpin/account_number/newpin
     response: ok/fail
 
+    /user/$account_number/validate?pin=XXXX
+    /user/$account_number/changepin?pin=XXXX&newpin=XXXX
+
 PRE-KONFIRM
     request: validateuser/account_number/pin
     response: ok/fail
