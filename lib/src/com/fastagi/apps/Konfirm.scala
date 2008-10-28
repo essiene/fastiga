@@ -4,7 +4,6 @@ import scala.actors.Actor
 import scala.actors.Actor._
 import com.fastagi.Session
 import com.fastagi.AgiTrait
-import com.fastagi.util.AgiUtils
 
 class Konfirm(session: Session) extends Actor with AgiTrait {
     
@@ -26,12 +25,12 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
                 this.callid = this.getCallID//AgiUtils.getChannelVariable("callid", this)
 
                 if(!this.callid.equals("Null")) {
-                    this.userPin = AgiUtils.getData("enter-pin", this)
+                    this.userPin = agiUtils.getData("enter-pin", this)
 
                     if(validate(accountNumber, userPin)) {
                         this.playCachedFile(this.callid)
                     } else {
-                        AgiUtils.playFile("invalid-pin-entered", this)
+                        agiUtils.playFile("invalid-pin-entered", this)
                         if(tries < 3) {
                             tries = tries + 1
                             this.restart("hello")
@@ -55,7 +54,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     def restart(fileName: String) = this.start(fileName)
 
     def playCachedFile(callid: String) = {
-        AgiUtils.playFile(callid, this)
+        agiUtils.playFile(callid, this)
         this.getConfirmationStatus("play-options")
     }
 

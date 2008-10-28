@@ -4,82 +4,68 @@ import scala.actors.Actor
 import scala.actors.Actor._
 import com.fastagi.Session
 
-class PreKonfirm(session: Session) extends Actor {
+class PreKonfirm(session: Session) extends Actor with AgiTrait {
     
     var accountNumber = ""
     var pin = ""
     var chequeNumber = ""
     
     def act() {
-        this.playHello("hello")
+        this.start("hello")
     }
 
-    def playHello(fileName: String) = {
+    def start(fileName: String) = {
         rpc(AgiStreamFile(fileName, "", "")) match {        
             case AgiResponse(result, data, endpoint) =>
-                this.getAccountNumber("enter-account-number")
+                this.accountNumber = agiUtils.getData("enter-account-number", this)
+                if(agiUtils.validate(this.accountNumber, this.urlMaker, this.jsonPipe)) {
+                    this.pin = agiUtils.getData("enter-pin", this)
+                    this.chequeNumber = agiUtils.getData("enter-cheque-number", this)
+                    this.getConfirmationStatus("play-options")
+                } else {
+                    rpc(AgiStreamFile("invalid-account-number", "", ""))
+                    session ! CloseSession
+                }
         }                
     }
 
-    def getAccountNumber(fileName: String) = {
-        rpc(AgiGetData(fileName, "", "4")) match {
-            case AgiResponse(result, data, endpoint) =>                
-                println(result)
-                this.accountNumber = result
-                this.getPin("enter-pin")
-        }        
-    }
-
-    def getPin(fileName: String) = {
-        rpc(AgiGetData(fileName, "", "4")) match {
-            case AgiResponse(result, data, endpoint) =>                
-                println(result)
-                this.pin = result
-                if(this.validate(this.accountNumber, this.pin))
-                    this.getChequeNumber("enter-cheque-number")
-        }
-    }
-
-    def getChequeNumber(fileName: String) = {
-        rpc(AgiGetData(fileName, "", "")) match {
-            case AgiResponse(result, data, endpoint) =>
-                println(result)
-                this.chequeNumber = result
-                this.getConfirmationStatus("play-options")
-        }
-    }
-
     def getConfirmationStatus(fileName: String) = {
+        var status = ""
         rpc(AgiGetData(fileName,  "", "")) match {
             case AgiResponse(result, data, endpoint) =>
-                println(result)
                 Integer.parseInt(result) match {
                     case 1 => 
                         //konfirm
+                        status = result
                     case 2 =>
                         //cancel
+                        status = result
                     case 3 =>
                         //konfirm and call
+                        status = result
                     case 4 =>
                         //cancel and call
+                        status = result
                     case _ =>
                         session ! CloseSession
                 }
-                updateDB()
+                updateDB(status)
         }
     }
 
-    def validate(account_number: String, pin: String): boolean = {
-        return true
-    }
+    def updateDB(status: String): boolean = {    
+        val url = urlMaker.url_for("user", "konfirm", this.accountNumber, Map("status"->status, "chequenumber"->this.chequeNumber, "pin"->this.pin))
 
-    def updateDB(): boolean = {
+        jsonPipe.parse(url)
+
+        val retVal = jsonPipe.get("Status")
         session ! CloseSession
-        this.exit()
-        return true
+        if(retVal.equals("OK"))
+            return true
+        return false            
     }
   
-    def rpc(request: AgiRequest): AgiResponse = {
+    override def rpc(request: AgiRequest): AgiResponse = {
         this.session ! request
         receive {
             case agiRequest: AgiResponse =>

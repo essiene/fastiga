@@ -21,7 +21,7 @@ class URLMaker {
                 retVal = this.append(retVal, param)
             )
         }
-
+        println(retVal)
         return retVal
     }
 

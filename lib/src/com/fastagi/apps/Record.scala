@@ -4,7 +4,6 @@ import scala.actors.Actor
 import scala.actors.Actor._
 import com.fastagi.Session
 import com.fastagi.AgiTrait
-import com.fastagi.util.AgiUtils
 
 class Record(session: Session) extends Actor with AgiTrait {
     
@@ -14,7 +13,7 @@ class Record(session: Session) extends Actor with AgiTrait {
         if(this.canRecord)
             this.start("hello")
         else {
-            AgiUtils.playFile("can-not-record", this)
+            agiUtils.playFile("can-not-record", this)
             session ! CloseSession
         }
     }
@@ -38,8 +37,8 @@ class Record(session: Session) extends Actor with AgiTrait {
     def startRecord() = {        
         rpc(AgiRecordFile(this.fileName, "ulaw", "#", "-1", "", "", "")) match {
             case AgiResponse(result, data, endpoint) =>
-                AgiUtils.playFile(fileName, this)
-                AgiUtils.getData("save-file", this) match {
+                agiUtils.playFile(fileName, this)
+                agiUtils.getData("save-file", this) match {
                     case "1" => 
                         //move file from temp location to original location
                         session ! CloseSession

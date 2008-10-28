@@ -2,8 +2,9 @@ package com.fastagi.util
 
 import com.fastagi.Messages
 import com.fastagi.Session
+import com.fastagi.apps.util._
 
-object AgiUtils {
+class AgiUtils {
     def getData(fileName: String, app: AgiTrait): String = {
         app.rpc(AgiGetData(fileName, "", "")) match {
             case AgiResponse(result, data, endpoint) =>
@@ -29,6 +30,18 @@ object AgiUtils {
     }
 
     def getConfirmationStatus(fileName: String, doNext: Map[Int, String]) = {
+    }
+
+    def validate(accountNumber: String, urlMaker: URLMaker, jsonPipe: JSONPipe): boolean = {
+        val url = urlMaker.url_for("user", null, accountNumber, null)
+
+        jsonPipe.parse(url)
+        
+        val status = jsonPipe.get("Status")
+
+        if(status.equals("OK"))
+            return true
+        return false
     }
 }
 
