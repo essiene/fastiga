@@ -13,6 +13,10 @@ class PinMan(session: Session) extends Actor with AgiTrait {
     var pin = ""
     var newPin = ""
     var newPin2 = ""
+    //val validate_url = config.get("validate-url")
+    val validate_url = "http://localhost:5000/ivr/validateuser?"
+    val changepin_url = "http://localhost:5000/pinman/changepin?"
+
     
     def act() {
         this.start("hello")
@@ -28,16 +32,22 @@ class PinMan(session: Session) extends Actor with AgiTrait {
                     this.newPin = AgiUtils.getData("new-pin", this)
                     this.newPin2 = AgiUtils.getData("new-pin-again", this)
                     
-                    if(this.matched(this.newPin, this.newPin2)) {
+                    if(this.matched(this.newPin, this.newPin2)) 
                         this.updateDB(this.accountNumber, this.newPin)
+                    else {
+                        rpc(AgiStreamFile("pin-mismatch", "", ""))
+                        session ! CloseSession
                     }
-
+                } else {
+                    rpc(AgiStreamFile("invalid-account-number", "", ""))
+                    session ! CloseSession
                 }
         }                
     }
 
     def validate(account_number: String, pin: String): boolean = {
-        JSONPipe.parse("http://localhost:8080/JAYSON/Main?action=validateuser&account_number="+account_number+"&pin="+pin)
+        JSONPipe.parse(validate_url + "account_number="+account_number+"&pin="+pin)
+
         val status = JSONPipe.get("Status")
         if(status.equals("OK"))
             return true
@@ -45,13 +55,21 @@ class PinMan(session: Session) extends Actor with AgiTrait {
     }
 
     def matched(pin: String, pin2: String): boolean = {
-        return true
+        if(pin.equals(pin2))
+            return true
+        else
+            return false
     }
 
     def updateDB(account_number: String, pin: String): boolean = {
+        JSONPipe.parse(changepin_url + "account_number="+account_number+"&pin="+pin)
+
+        val status = JSONPipe.get("Status")
         session ! CloseSession
-        this.exit()
-        return true
+        if(status.equals("OK"))
+            return true
+        else
+            return false
     }
   
     override def rpc(request: AgiRequest): AgiResponse = {
