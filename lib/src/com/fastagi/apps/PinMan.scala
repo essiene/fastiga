@@ -5,18 +5,16 @@ import scala.actors.Actor._
 import com.fastagi.Session
 import com.fastagi.AgiTrait
 import com.fastagi.util.AgiUtils
-import com.fastagi.apps.util.JSONPipe
+import com.fastagi.apps.util._
 
 class PinMan(session: Session) extends Actor with AgiTrait {
     
     var accountNumber = ""
-    var pin = ""
+    var oldPin = ""
     var newPin = ""
     var newPin2 = ""
-    //val validate_url = config.get("validate-url")
-    val validate_url = "http://localhost:5000/ivr/validateuser?"
-    val changepin_url = "http://localhost:5000/pinman/changepin?"
-
+    var jsonPipe = new JSONPipe()
+    var urlMaker = new URLMaker()
     
     def act() {
         this.start("hello")
@@ -26,14 +24,15 @@ class PinMan(session: Session) extends Actor with AgiTrait {
         rpc(AgiStreamFile(fileName, "", "")) match {        
             case AgiResponse(result, data, endpoint) =>
                 this.accountNumber = AgiUtils.getData("enter-account-number", this)
-                this.pin = AgiUtils.getData("enter-pin", this)
 
-                if(this.validate(this.accountNumber, this.pin)) {
+                if(this.validate(this.accountNumber)) {
+
+                    this.oldPin = AgiUtils.getData("enter-pin", this)
                     this.newPin = AgiUtils.getData("new-pin", this)
                     this.newPin2 = AgiUtils.getData("new-pin-again", this)
                     
-                    if(this.matched(this.newPin, this.newPin2)) 
-                        this.updateDB(this.accountNumber, this.newPin)
+                    if(this.matched(this.newPin, this.newPin2))                     
+                        this.updateDB(this.accountNumber,  this.oldPin, this.newPin)
                     else {
                         rpc(AgiStreamFile("pin-mismatch", "", ""))
                         session ! CloseSession
@@ -45,10 +44,12 @@ class PinMan(session: Session) extends Actor with AgiTrait {
         }                
     }
 
-    def validate(account_number: String, pin: String): boolean = {
-        JSONPipe.parse(validate_url + "account_number="+account_number+"&pin="+pin)
+    def validate(account_number: String): boolean = {        
+        val url = urlMaker.url_for("user", null, account_number, null)
+        
+        jsonPipe.parse(url)
 
-        val status = JSONPipe.get("Status")
+        val status = jsonPipe.get("Status")
         if(status.equals("OK"))
             return true
         return false            
@@ -61,10 +62,12 @@ class PinMan(session: Session) extends Actor with AgiTrait {
             return false
     }
 
-    def updateDB(account_number: String, pin: String): boolean = {
-        JSONPipe.parse(changepin_url + "account_number="+account_number+"&pin="+pin)
+    def updateDB(account_number: String, oldPin: String, newPin: String): boolean = {        
+        val url = urlMaker.url_for("user", "changepin", account_number, Map("oldpin"->oldPin, "newpin"->newPin))
 
-        val status = JSONPipe.get("Status")
+        jsonPipe.parse(url)
+
+        val status = jsonPipe.get("Status")
         session ! CloseSession
         if(status.equals("OK"))
             return true

@@ -5,7 +5,7 @@ import java.net._
 import scala.util.parsing.json._
 import java.util.Hashtable
 
-object JSONPipe {
+class JSONPipe {
 
 
     var jsonAsMap = new Hashtable[String, String]()
