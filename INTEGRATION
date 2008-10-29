@@ -1,52 +1,49 @@
 PinMan
-    Rq => customer/id/validate?pin=  
+    Rq => account/id/isvalid?pin=  
     Re => {AppServer:Name, Version:version, Status(OK|FAIL)}
     
-    Rq => customer/id/changepin?oldpin=&newpin=
+    Rq => account/id/changepin?oldpin=&newpin=
     Re => {AppServer:Name, Version:version, Status(OK|FAIL)}
+
+account#:cheque#:OK|CANCEL
 
 PreKonfirm
-    Rq => customer/id/validate?pin=
+    Rq => account/id/isvalid?pin=
     Re => {AppServer:Name, Version:version, Status(OK|FAIL)}
 
-    Rq => customer/id/prekonfirm?status=&chequenumber=&pin=
+    Rq => account/id/cheque/chequenum/konfirm?status=0|1
     Re => {AppServer:Name, Version:version, Status(OK|FAIL)}
 
 Konfirm
-    Rq => customer/id/validate?pin=
+    CAll Variables ->
+        AccountNum, ChequeNum, TransactionId
+
+    Rq => account/id/isvalid?pin=
     Re => {AppServer:Name, Version:version, Status(OK|FAIL)}
 
-    Rq => customer/id/konfirm?status=&callid=&pin
+    -Get speechfile via TransactionId
+
+    -get confirmation action from user 0, 1, 2, 3
+
+    Rq => account/id/cheque/chequenum/konfirm?status=0|1
+    Re => {AppServer:Name, Version:version, Status(OK|FAIL)}
+
+    /transaction/new?accountid=&chequeid&
+        {
+           fetch phonenumbers,
+           create new transaction, [accountid, chequeid], get transaction id,
+           call obelisk: transactionid, accountid, chequeid
+        }
+
+    /transaction/
+    /status/
+
+    Rq => status/new?transactionid=TransactionId&status= (OK|OK_CONTACT|CANCEL|CANCEL_CONTACT|TIMEDOUT|BELOW_THRESHOLD)
     Re => {AppServer:Name, Version:version, Status(OK|FAIL)}
 
 Record
-    Rq => recorder/id/get_file_to_record
+    Rq => recorder/id/get_filename
     Re => {AppServer:Name, Version:version, Status(OK|FAIL), filename:file_name}
 
-    Rq => recorder/id/move_file?from=&to=
+    Rq => recorder/id/write?from=
     Re => {AppServer:Name, Version:version, Status(OK|FAIL)}
-
-
-PIN MANAGEMENT
-    request: validateuser/account_number/pin
-    response: ok/fail
-
-    request: changeuserpin/account_number/newpin
-    response: ok/fail
-
-    /user/$account_number/validate?pin=XXXX
-    /user/$account_number/changepin?pin=XXXX&newpin=XXXX
-
-PRE-KONFIRM
-    request: validateuser/account_number/pin
-    response: ok/fail
-
-    request: prekonfirm/account_number/cheque_number/action
-    response: ok/fail
-
-KONFIRM
-    request: validateuser/account_number/pin
-    response: ok/fail
-
-    request: konfirm/account_number/pin/action
-    response ok/fail
