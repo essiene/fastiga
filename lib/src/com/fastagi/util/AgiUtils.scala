@@ -16,14 +16,15 @@ class AgiUtils {
         app.rpc(AgiGetChannelVariable(varName)) match {
             case AgiResponse(result, data, endpoint) =>
                 result match {
-                    case "0" => return "Null"
+                    case "0" => return null
+                    case "-1" => return null
                     case "1" => return data
                 }
         }
     }
 
     def playFile(fileName: String, app: AgiTrait): String = {
-        app.rpc(AgiStreamFile(fileName, "#", "")) match {
+        app.rpc(AgiStreamFile(fileName, "\"\"", "")) match {
             case AgiResponse(result, data, endpoint) =>
                 return result
         }
@@ -43,5 +44,15 @@ class AgiUtils {
             return true
         return false
     }
-}
 
+    def validatePin(accountNumber: String, pin: String, urlMaker: URLMaker, jsonPipe: JSONPipe): boolean = {
+        val url = urlMaker.url_for("user","validatepin",accountNumber, Map[String, String]("pin"->pin))
+        jsonPipe.parse(url)
+
+        val status = jsonPipe.get("Status")
+
+        if(status.equals("OK"))
+            return true
+        return false            
+    }
+}

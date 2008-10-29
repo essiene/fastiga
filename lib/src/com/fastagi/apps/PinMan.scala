@@ -4,7 +4,6 @@ import scala.actors.Actor
 import scala.actors.Actor._
 import com.fastagi.Session
 import com.fastagi.AgiTrait
-import com.fastagi.apps.util._
 
 class PinMan(session: Session) extends Actor with AgiTrait {
     
@@ -20,23 +19,30 @@ class PinMan(session: Session) extends Actor with AgiTrait {
     def start(fileName: String) = {
         rpc(AgiStreamFile(fileName, "\"\"", "")) match {        
             case AgiResponse(result, data, endpoint) =>
-                this.accountNumber = agiUtils.getData("enter-account-number", this)
+                this.accountNumber = this.agiUtils.getData("enter-account-number", this)
 
-                if(agiUtils.validate(this.accountNumber, this.urlMaker, this.jsonPipe)) {
+                if(this.accountNumber.equals("-1")) {
+                    session ! CloseSession
+                    this.exit
+                }
 
-                    this.oldPin = agiUtils.getData("enter-pin", this)
-                    this.newPin = agiUtils.getData("new-pin", this)
-                    this.newPin2 = agiUtils.getData("new-pin-again", this)
+                if(this.agiUtils.validate(this.accountNumber, this.urlMaker, this.jsonPipe)) {
+
+                    this.oldPin = this.agiUtils.getData("enter-pin", this)
+                    this.newPin = this.agiUtils.getData("new-pin", this)
+                    this.newPin2 = this.agiUtils.getData("new-pin-again", this)
                     
                     if(this.matched(this.newPin, this.newPin2))                     
                         this.updateDB()
                     else {
                         rpc(AgiStreamFile("pin-mismatch", "\"\"", ""))
                         session ! CloseSession
+                        this.exit
                     }
                 } else {
                     rpc(AgiStreamFile("invalid-account-number", "\"\"", ""))
                     session ! CloseSession
+                    this.exit
                 }
         }                
     }

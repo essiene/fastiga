@@ -9,7 +9,6 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     
     var accountNumber = ""
     var userPin = ""
-    var dbPin = ""
     var callid = ""
     var tries = 0
 
@@ -19,63 +18,72 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
 
 
     def start(fileName: String): Unit = {
-        this.rpc(AgiStreamFile(fileName, "#", "")) match {        
+        this.rpc(AgiStreamFile(fileName, "\"\"", "")) match {        
             case AgiResponse(result, data, endpoint) =>
-                this.accountNumber = this.getAccountNumber//AgiUtils.getChannelVariable("extra", this)
-                this.callid = this.getCallID//AgiUtils.getChannelVariable("callid", this)
+                this.accountNumber = this.agiUtils.getChannelVariable("extra", this)
+                this.callid = this.agiUtils.getChannelVariable("callid", this)
 
-                if(!this.callid.equals("Null")) {
-                    this.userPin = agiUtils.getData("enter-pin", this)
-
-                    if(validate(accountNumber, userPin)) {
-                        this.playCachedFile(this.callid)
-                    } else {
-                        agiUtils.playFile("invalid-pin-entered", this)
-                        if(tries < 3) {
-                            tries = tries + 1
-                            this.restart("hello")
-                        }
-                    }
-
-                } else {
+                if(this.accountNumber == null || this.callid == null) {
                     session ! CloseSession
+                    this.exit
                 }
+
+                this.userPin = this.agiUtils.getData("enter-pin", this)
+
+                if(this.agiUtils.validatePin(this.accountNumber, this.userPin, this.urlMaker, this.jsonPipe)) {
+                    this.playCachedFile(this.callid)
+                } else {
+                    this.agiUtils.playFile("invalid-pin-entered", this)
+                    if(tries < 3) {
+                        tries = tries + 1
+                        this.restart("hello")
+                    }
+                }
+
         }     
-    }
-
-    def getAccountNumber(): String = {
-        "1011001"
-    }
-
-    def getCallID(): String = {
-        "1212121"
     }
 
     def restart(fileName: String) = this.start(fileName)
 
     def playCachedFile(callid: String) = {
-        agiUtils.playFile(callid, this)
+        this.agiUtils.playFile(callid, this)
         this.getConfirmationStatus("play-options")
     }
 
     def getConfirmationStatus(fileName: String) = {
+        var status = ""
         this.rpc(AgiGetData(fileName, "", "")) match {
             case AgiResponse(result, data, endpoint) =>
                 Integer.parseInt(result) match {
-                    case 1 => //konfirm
-                    case 2 => //cancel
-                    case 3 => //konfirm and contact
-                    case 4 => //cancel and contact
+                    case 1 => 
+                        //konfirm
+                        status = result
+                    case 2 => 
+                        //cancel
+                        status = result
+                    case 3 => 
+                        //konfirm and contact
+                        status = result
+                    case 4 => 
+                        //cancel and contact
+                        status = result
                     case _ =>
                         session ! CloseSession
                 }
-                this.updateDB()
+                this.updateDB(status)
         }
     }
 
-    def updateDB(): boolean = {
+    def updateDB(status: String): boolean = {
+        val url = urlMaker.url_for("user", "konfirm", this.accountNumber, Map("status"->status, "callid"->this.callid, "pin"->this.userPin))
+
+        jsonPipe.parse(url)
+
+        val retVal = jsonPipe.get("Status")
         session ! CloseSession
-        return true
+        if(retVal.equals("OK"))
+            return true
+        return false            
     }    
 
     def validate(accountNumber: String, userPin: String): boolean = {

@@ -5,6 +5,7 @@ compile:
 
 run: compile
 	@scala -cp build/ Run
+	echo "Ready!"
 
 javacc:
 	@javacc -OUTPUT_DIRECTORY=${ODIR} src/com/konfirmagi/parser/parser.jj
