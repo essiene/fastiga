@@ -4,7 +4,8 @@ class URLMaker {
     
     //this is better done in a config file
     val urls = Map(
-        "customer"->"http://localhost:5000/customer/"        
+        "customer"->"http://localhost:5000/customer/",
+        "recorder"->"http://localhost:5000/recorder/"
     )
 
     def url_for(controller: String, action: String, id: String, params: Map[String, String]): String = {

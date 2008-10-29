@@ -15,11 +15,17 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def start(fileName: String) = {
-        rpc(AgiStreamFile(fileName, "", "")) match {        
+        rpc(AgiStreamFile(fileName, "\"\"", "")) match {        
             case AgiResponse(result, data, endpoint) =>
                 this.accountNumber = this.agiUtils.getData("enter-account-number", this)
-                if(this.agiUtils.validate(this.accountNumber, this.urlMaker, this.jsonPipe)) {
-                    this.pin = this.agiUtils.getData("enter-pin", this)
+                this.pin = this.agiUtils.getData("enter-pin", this)
+
+                if(this.accountNumber.equals("-1") || this.pin.equals("-1")) {
+                    session ! CloseSession
+                    this.exit
+                }
+
+                if(this.agiUtils.validate(this.accountNumber, this.pin, this.urlMaker, this.jsonPipe)) {
                     this.chequeNumber = this.agiUtils.getData("enter-cheque-number", this)
                     this.getConfirmationStatus("play-options")
                 } else {

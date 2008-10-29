@@ -1,3 +1,32 @@
+PinMan
+    Rq => customer/id/validate?pin=  
+    Re => {AppServer:Name, Version:version, Status(OK|FAIL)}
+    
+    Rq => customer/id/changepin?oldpin=&newpin=
+    Re => {AppServer:Name, Version:version, Status(OK|FAIL)}
+
+PreKonfirm
+    Rq => customer/id/validate?pin=
+    Re => {AppServer:Name, Version:version, Status(OK|FAIL)}
+
+    Rq => customer/id/prekonfirm?status=&chequenumber=&pin=
+    Re => {AppServer:Name, Version:version, Status(OK|FAIL)}
+
+Konfirm
+    Rq => customer/id/validate?pin=
+    Re => {AppServer:Name, Version:version, Status(OK|FAIL)}
+
+    Rq => customer/id/konfirm?status=&callid=&pin
+    Re => {AppServer:Name, Version:version, Status(OK|FAIL)}
+
+Record
+    Rq => recorder/id/get_file_to_record
+    Re => {AppServer:Name, Version:version, Status(OK|FAIL), filename:file_name}
+
+    Rq => recorder/id/move_file?from=&to=
+    Re => {AppServer:Name, Version:version, Status(OK|FAIL)}
+
+
 PIN MANAGEMENT
     request: validateuser/account_number/pin
     response: ok/fail

@@ -20,15 +20,14 @@ class PinMan(session: Session) extends Actor with AgiTrait {
         rpc(AgiStreamFile(fileName, "\"\"", "")) match {        
             case AgiResponse(result, data, endpoint) =>
                 this.accountNumber = this.agiUtils.getData("enter-account-number", this)
+                this.oldPin = this.agiUtils.getData("enter-pin", this)
 
-                if(this.accountNumber.equals("-1")) {
+                if(this.accountNumber.equals("-1") || this.oldPin.equals("-1")) {
                     session ! CloseSession
                     this.exit
                 }
 
-                if(this.agiUtils.validate(this.accountNumber, this.urlMaker, this.jsonPipe)) {
-
-                    this.oldPin = this.agiUtils.getData("enter-pin", this)
+                if(this.agiUtils.validate(this.accountNumber, this.oldPin, this.urlMaker, this.jsonPipe)) {
                     this.newPin = this.agiUtils.getData("new-pin", this)
                     this.newPin2 = this.agiUtils.getData("new-pin-again", this)
                     
@@ -55,7 +54,7 @@ class PinMan(session: Session) extends Actor with AgiTrait {
     }
 
     def updateDB(): boolean = {        
-        val url = urlMaker.url_for("customer", "changepin", this.accountNumber, Map("oldpin"->this.oldPin, "newpin"->this.newPin))
+        val url = urlMaker.url_for("customer", "change_pin", this.accountNumber, Map("oldpin"->this.oldPin, "newpin"->this.newPin))
 
         jsonPipe.parse(url)
 

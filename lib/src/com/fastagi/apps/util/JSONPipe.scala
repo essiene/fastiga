@@ -11,14 +11,18 @@ class JSONPipe {
     var jsonAsMap = new Hashtable[String, String]()
 
     def parse(uri: String) = {
-        val reader = new BufferedReader(new InputStreamReader(new URL(uri).openStream()))
-        val line = reader.readLine()    
+        try {
+            val reader = new BufferedReader(new InputStreamReader(new URL(uri).openStream()))
+            val line = reader.readLine()                
 
-        val json = JSON.parseFull(line)
-        val jsonAsList = json.getOrElse(0).asInstanceOf[List[Any]]
+            val json = JSON.parseFull(line)
+            val jsonAsList = json.getOrElse(0).asInstanceOf[List[Any]]
 
-        jsonAsList.foreach(this.map)
-        println(this.jsonAsMap)
+            jsonAsList.foreach(this.map)
+            println(this.jsonAsMap)
+        } catch {
+            case e: Exception => e.printStackTrace()
+        }
     }
 
     def map(args: Any) = {       

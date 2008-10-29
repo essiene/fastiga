@@ -30,7 +30,12 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
 
                 this.userPin = this.agiUtils.getData("enter-pin", this)
 
-                if(this.agiUtils.validatePin(this.accountNumber, this.userPin, this.urlMaker, this.jsonPipe)) {
+                if(this.userPin.equals("-1")) {
+                    session ! CloseSession
+                    this.exit
+                }
+
+                if(this.agiUtils.validate(this.accountNumber, this.userPin, this.urlMaker, this.jsonPipe)) {
                     this.playCachedFile(this.callid)
                 } else {
                     this.agiUtils.playFile("invalid-pin-entered", this)
@@ -85,10 +90,6 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
             return true
         return false            
     }    
-
-    def validate(accountNumber: String, userPin: String): boolean = {
-        return true
-    }
 
     override def rpc(request: AgiRequest): AgiResponse = {
         this.session ! request

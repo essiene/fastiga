@@ -16,9 +16,8 @@ class AgiUtils {
         app.rpc(AgiGetChannelVariable(varName)) match {
             case AgiResponse(result, data, endpoint) =>
                 result match {
-                    case "0" => return null
-                    case "-1" => return null
                     case "1" => return data
+                    case _ => return null
                 }
         }
     }
@@ -33,8 +32,8 @@ class AgiUtils {
     def getConfirmationStatus(fileName: String, doNext: Map[Int, String]) = {
     }
 
-    def validate(accountNumber: String, urlMaker: URLMaker, jsonPipe: JSONPipe): boolean = {
-        val url = urlMaker.url_for("customer", null, accountNumber, null)
+    /**def validate(accountNumber: String, urlMaker: URLMaker, jsonPipe: JSONPipe): boolean = {
+        val url = urlMaker.url_for("customer", "validate", accountNumber, null)
 
         jsonPipe.parse(url)
         
@@ -43,10 +42,10 @@ class AgiUtils {
         if(status.equals("OK"))
             return true
         return false
-    }
+    }**/
 
-    def validatePin(accountNumber: String, pin: String, urlMaker: URLMaker, jsonPipe: JSONPipe): boolean = {
-        val url = urlMaker.url_for("customer","validatepin",accountNumber, Map[String, String]("pin"->pin))
+    def validate(accountNumber: String, pin: String, urlMaker: URLMaker, jsonPipe: JSONPipe): boolean = {
+        val url = urlMaker.url_for("customer","validate",accountNumber, Map[String, String]("pin"->pin))
         jsonPipe.parse(url)
 
         val status = jsonPipe.get("Status")
