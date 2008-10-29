@@ -54,7 +54,7 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def updateDB(status: String): boolean = {    
-        val url = urlMaker.url_for("user", "prekonfirm", this.accountNumber, Map("status"->status, "chequenumber"->this.chequeNumber, "pin"->this.pin))
+        val url = urlMaker.url_for("customer", "prekonfirm", this.accountNumber, Map("status"->status, "chequenumber"->this.chequeNumber, "pin"->this.pin))
 
         jsonPipe.parse(url)
 

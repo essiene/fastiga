@@ -75,7 +75,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def updateDB(status: String): boolean = {
-        val url = urlMaker.url_for("user", "konfirm", this.accountNumber, Map("status"->status, "callid"->this.callid, "pin"->this.userPin))
+        val url = urlMaker.url_for("customer", "konfirm", this.accountNumber, Map("status"->status, "callid"->this.callid, "pin"->this.userPin))
 
         jsonPipe.parse(url)
 
