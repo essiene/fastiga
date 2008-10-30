@@ -15,7 +15,6 @@ class AppServer(appPackage: String) extends Actor {
                         case e:Exception => e.printStackTrace()                  
                                 session ! CloseSession                      
                     }
-
                 case _ =>
                     //Unknown Message Type
             }

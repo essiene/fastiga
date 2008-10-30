@@ -37,6 +37,10 @@ Konfirm
 
     /transaction/
     /status/
+    
+    #instead of doing this from the IVR, lets just call 
+    #Rq => account/id/cheque/chequenum/konfirm?status=0|1|2|3&transaction_id=tid
+    #ths app server handles the write to both cheque and status once here, instead of having two calls to it
 
     Rq => status/new?transactionid=TransactionId&status= (OK|OK_CONTACT|CANCEL|CANCEL_CONTACT|TIMEDOUT|BELOW_THRESHOLD)
     Re => {AppServer:Name, Version:version, Status(OK|FAIL)}

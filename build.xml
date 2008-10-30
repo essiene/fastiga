@@ -10,8 +10,8 @@
         <pathelement location="${scala.home}/lib/scala-library.jar"/>
     </path>
 
-
     <path id="compile.classpath">
+
         <fileset dir="${lib.dir}">
             <include name="*.jar"/>
         </fileset>
@@ -33,8 +33,9 @@
         </fileset>
 
         <path refid="scala.classpath"/>
-
     </path>
+
+
 
     <path id="test.classpath">
         <pathelement location="${test.dir}"/>
@@ -42,15 +43,18 @@
         <path refid="compile.classpath"/>
     </path>
 
+
     <target name="settings">
         <echo message="project.name = ${project.name}"/>
         <echo message=""/>
+        <echo message="document.root = ${document.root}"/>
+        <echo message="document.root.webinf = ${document.root.webinf}"/>
         <echo message="src.dir = ${src.dir}"/>
         <echo message="lib.dir = ${lib.dir}"/>
         <echo message="build.dir = ${build.dir}"/>
         <echo message="dist.dir = ${dist.dir}"/>
         <echo message="test.dir = ${test.dir}"/>
-        <echo message="test.classes = ${test.classes}"/>
+        <echo message="config.dir = ${config.dir}"/>
     </target>
 
     <taskdef resource="scala/tools/ant/antlib.xml">
@@ -58,28 +62,26 @@
     </taskdef>
 
     <target name="init-project">
+        <mkdir dir="${document.root}"/>
+        <mkdir dir="${document.root.webinf}"/>
         <mkdir dir="${src.dir}"/>
         <mkdir dir="${lib.dir}"/>
         <mkdir dir="${test.dir}"/>
-        <mkdir dir="${package.dir}"/>
-        <mkdir dir="${javacc.srcdir}"/>
+        <mkdir dir="${config.dir}"/>
     </target>
 
-    <target name="parsergenclean">
-        <delete>
-            <fileset dir="${javacc.srcdir}">
-                <include name="*.java"/>
-            </fileset>
-        </delete>
-    </target>
 
-    <target name="clean" depends="parsergenclean">
+    <target name="clean">
         <delete dir="${build.dir}"/>
     </target>
 
 
     <target name="testclean">
-        <delete dir="${test.classes}"/>
+        <delete>
+            <fileset dir="${test.dir}">
+                <include name="*.class"/>
+            </fileset>
+        </delete>
     </target>
 
 
@@ -100,24 +102,6 @@
     </target>
 
 
-    <target name="parsergen">
-        <javacc 
-            static="false" 
-            target="${javacc.target}"
-            javacchome="${javacc.home}"/>
-    </target>
-
-    <target name="compile-with-parser" depends="parsergen">
-        <mkdir dir="${build.classes}"/>
-        <mkdir dir="${lib.dir}"/>
-        <javac srcdir="${src.dir}" destdir="${build.classes}">
-            <classpath refid="compile.classpath"/>
-        </javac>
-        <scalac srcdir="${src.dir}" destdir="${build.classes}" classpathref="compile.classpath">
-            <include name="**/*.scala"/>
-        </scalac>
-    </target>
-
     <target name="compile">
         <mkdir dir="${build.classes}"/>
         <mkdir dir="${lib.dir}"/>
@@ -131,8 +115,8 @@
 
 
     <target name="compiletest" depends="compile">
-        <mkdir dir="${test.classes}"/>
-        <javac srcdir="${test.dir}" destdir="${test.classes}">
+        <mkdir dir="${test.dir}"/>
+        <javac srcdir="${test.dir}" destdir="${test.dir}">
             <classpath refid="test.classpath"/>
             <include name="**/*.java"/>
         </javac>
@@ -140,7 +124,7 @@
             <classpath refid="test.classpath"/>
             <include name="**/*.scala"/>
         </scalac>
-</target>
+    </target>
 
 
     <target name="test" depends="compiletest">
@@ -149,46 +133,34 @@
 
             <batchtest fork="yes">
                 <formatter type="brief" usefile="false"/>
-                <fileset dir="${test.classes}" includes="**/*.class"/>
+                <fileset dir="${test.dir}" includes="**/*.class"/>
             </batchtest>
         </junit>
     </target>
 
-    <target name="dist-with-parser" depends="resources, compile-with-parser">
-        <mkdir dir="${build.dir}"/>
-        <delete dir="${test.classes}"/>
-        <mkdir dir="${dist.dir}"/>
-        <jar basedir="${build.dir}" jarfile="${dist.dir}/${project.name}.jar"/>
-        <copy todir="." file="${dist.dir}/${project.name}.jar"/>
-    </target>
 
     <target name="dist" depends="resources, compile">
         <mkdir dir="${build.dir}"/>
-        <delete dir="${test.classes}"/>
+        <copy todir="${build.dir}">
+            <fileset dir="${document.root}"/>
+        </copy>
+
+        <mkdir dir="${build.lib}"/>
+        <copy todir="${build.lib}">
+            <fileset dir="${lib.dir}">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+
         <mkdir dir="${dist.dir}"/>
-        <jar basedir="${build.dir}" jarfile="${dist.dir}/${project.name}.jar"/>
+        <war basedir="${build.dir}" warfile="${dist.dir}/${project.name}.war" webxml="${document.root.webinf}/web.xml">
+        </war>
     </target>
 
     <target name="deploy" depends="dist">
-        <copy todir="${catalina.home}/common/lib" file="${dist.dir}/${project.name}.jar"/>
+        <copy todir="${catalina.home}/webapps" file="${dist.dir}/${project.name}.war"/>
     </target>
 
-    <target name="javadoc" description="Generate JavaDoc API docs" depends="dist">
-        <delete dir="${doc.dir}"/>
-        <mkdir dir="${doc.dir}"/>
-        <javadoc sourcepath="${src.dir}"
-            destdir="${doc.dir}"
-            classpath="${dist.dir}/${project.name}.jar"
-            packagenames="*"
-            author="false"
-            private="false"
-            version="true"
-            windowtitle="${project.name} API Documentation"
-            doctitle="&lt;h1&gt;${project.name} Documentation &lt;/h1&gt;">
-            <classpath refid="compile.classpath"/>
-        </javadoc>
-    </target>
-
-    <target name="all" depends="clean, distclean, dist-with-parser"/>
+    <target name="all" depends="clean, distclean, dist"/>
     <target name="allclean" depends="clean, testclean, distclean"/>
 </project>
