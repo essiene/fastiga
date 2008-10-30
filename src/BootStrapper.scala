@@ -22,10 +22,9 @@ class BootStrapper extends ServletContextListener {
         this.appServer = new AppServer(appPackage)
         appServer.start()
 
-        serverMonitor = new ServerMonitor(appServer)        
-        serverMonitor.start()
-        serverMonitor.trapExit = true
-        serverMonitor.link(appServer)
+        //serverMonitor = new ServerMonitor(appServer)        
+        //serverMonitor.start()
+        //serverMonitor.trapExit = true
 
         log.debug("Server is Ready!")
         
@@ -36,8 +35,6 @@ class BootStrapper extends ServletContextListener {
     override def contextDestroyed(sce: ServletContextEvent) {
         log.debug("Stopping Service");
         if(acceptor != null)
-            acceptor.stop()
-        if(serverMonitor != null)            
-            serverMonitor.exit("Connection Closed")
+            acceptor.close()
     }
 }

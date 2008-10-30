@@ -20,9 +20,9 @@ class Acceptor(port: Int, appServer:AppServer) extends Actor {
         }
     }
 
-    def stop(): Unit = {
+    def close(): Unit = {
         this.isAlive = false
         this.sessions.foreach(s => s ! CloseSession)
-        this.exit()
+        server.close()
     }
 }

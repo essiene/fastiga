@@ -8,8 +8,9 @@ import com.fastagi.AgiTrait
 class Konfirm(session: Session) extends Actor with AgiTrait {
     
     var accountNumber = ""
+    var chequeNumber = ""
     var userPin = ""
-    var callid = ""
+    var transactionID = ""
     var tries = 0
 
     def act() {
@@ -20,10 +21,11 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     def start(fileName: String): Unit = {
         this.rpc(AgiStreamFile(fileName, "\"\"", "")) match {        
             case AgiResponse(result, data, endpoint) =>
-                this.accountNumber = this.agiUtils.getChannelVariable("extra", this)
-                this.callid = this.agiUtils.getChannelVariable("callid", this)
+                this.accountNumber = this.agiUtils.getChannelVariable("accountid", this)
+                this.transactionID = this.agiUtils.getChannelVariable("transactionID", this)
+                this.chequeNumber = this.agiUtils.getChannelVariable("chequenumber", this)
 
-                if(this.accountNumber == null || this.callid == null) {
+                if(this.accountNumber == null || this.transactionID == null) {
                     session ! CloseSession
                     this.exit
                 }
@@ -36,7 +38,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
                 }
 
                 if(this.agiUtils.validate(this.accountNumber, this.userPin, this.urlMaker, this.jsonPipe)) {
-                    this.playCachedFile(this.callid)
+                    this.playCachedFile(this.transactionID)
                 } else {
                     this.agiUtils.playFile("invalid-pin-entered", this)
                     if(tries < 3) {
@@ -50,8 +52,8 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
 
     def restart(fileName: String) = this.start(fileName)
 
-    def playCachedFile(callid: String) = {
-        this.agiUtils.playFile(callid, this)
+    def playCachedFile(transactionID: String) = {
+        this.agiUtils.playFile(transactionID, this)
         this.getConfirmationStatus("play-options")
     }
 
@@ -80,7 +82,13 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def updateDB(status: String): boolean = {
-        val url = urlMaker.url_for("customer", "konfirm", this.accountNumber, Map("status"->status, "callid"->this.callid, "pin"->this.userPin))
+        var url = urlMaker.url_for("account", "konfirm", this.accountNumber, 
+                                    Map("status"->status, "transactionid"->this.transactionID, "pin"->this.userPin))
+        
+        var front = url.substring(0,url.indexOf("konfirm"))
+        var back = url.substring(url.indexOf("konfirm"), url.length())
+        front = front + "cheque/" + this.chequeNumber + "/"
+        url = front + back
 
         jsonPipe.parse(url)
 

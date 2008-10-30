@@ -26,4 +26,9 @@ class AppServer(appPackage: String) extends Actor {
         val constructor = agiAppClass.getConstructor(Array(session.getClass))
         constructor.newInstance(Array(session)).asInstanceOf[Actor]
     }
+
+    def stop(): Unit = {
+        this.exit()
+    }
+
 }

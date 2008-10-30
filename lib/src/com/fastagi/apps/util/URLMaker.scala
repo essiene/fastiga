@@ -4,13 +4,13 @@ class URLMaker {
     
     //this is better done in a config file
     val urls = Map(
-        "customer"->"http://localhost:5000/customer/",
+        "account"->"http://localhost:5000/account/",
         "recorder"->"http://localhost:5000/recorder/"
     )
 
     def url_for(controller: String, action: String, id: String, params: Map[String, String]): String = {
         var retVal = urls.get(controller).get().asInstanceOf[String]
-        
+
         if(id != null)
             retVal = retVal + id + "/"
 

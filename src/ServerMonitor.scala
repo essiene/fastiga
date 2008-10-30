@@ -7,6 +7,7 @@ import scala.actors.Exit
 class ServerMonitor(appServer:AppServer) extends Actor {
 
     var isAlive = true
+    self.link(appServer)
 
     def act() {
         loop {
@@ -14,6 +15,7 @@ class ServerMonitor(appServer:AppServer) extends Actor {
                 case Exit(actor, reason) =>
                     this.appServer.trapExit = false                    
                     this.appServer.start()
+                    this.link(appServer)
             }
         }
     }

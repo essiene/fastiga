@@ -54,7 +54,7 @@ class PinMan(session: Session) extends Actor with AgiTrait {
     }
 
     def updateDB(): boolean = {        
-        val url = urlMaker.url_for("customer", "change_pin", this.accountNumber, Map("oldpin"->this.oldPin, "newpin"->this.newPin))
+        val url = urlMaker.url_for("account", "change_pin", this.accountNumber, Map("oldpin"->this.oldPin, "newpin"->this.newPin))
 
         jsonPipe.parse(url)
 

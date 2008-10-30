@@ -32,8 +32,8 @@ class Pipe(client: Socket) {
             result = table.get("result").toString()
         if(table.containsKey("data")) 
             data = table.get("data").toString()
-        if(table.containsKey("endpoint")) 
-            endpoint = table.get("endpoint").toString()
+        if(table.containsKey("endpos")) 
+            endpoint = table.get("endpos").toString()
         return new AgiResponse(result, data, endpoint)
     }
     

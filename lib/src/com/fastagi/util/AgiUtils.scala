@@ -45,7 +45,7 @@ class AgiUtils {
     }**/
 
     def validate(accountNumber: String, pin: String, urlMaker: URLMaker, jsonPipe: JSONPipe): boolean = {
-        val url = urlMaker.url_for("customer","validate",accountNumber, Map[String, String]("pin"->pin))
+        val url = urlMaker.url_for("account","isvalid",accountNumber, Map[String, String]("pin"->pin))
         jsonPipe.parse(url)
 
         val status = jsonPipe.get("Status")
