@@ -1,11 +1,16 @@
 package com.fastagi
 
 import scala.actors.Actor
-import com.fastagi.util.PropertyFile
-import com.konfirmagi.webservice.WebService
+import scala.actors.Actor._
 
 trait AgiTrait {   
-    def rpc(agiRequest: AgiRequest): AgiResponse    
-    val prop = PropertyFile.loadProperties("/etc/fastagi/agi.properties")
-    val webService = new WebService()
+    def remoteCall(session: Session, request: AgiRequest): AgiResponse = {
+        session ! request
+        receive {
+            case agiResponse: AgiResponse => 
+                return agiResponse
+            case _  => 
+                return null                
+        }
+    }
 }

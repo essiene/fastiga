@@ -4,23 +4,15 @@ import scala.actors.Actor
 import scala.actors.Actor._
 import com.fastagi.Session
 import com.fastagi.util.PropertyFile
+import com.konfirmagi.webservice.WebService
 
 class PreKonfirm(session: Session) extends Actor with AgiTrait {
     
+    val prop = PropertyFile.loadProperties("/etc/fastagi/agi.properties")
     val speechPath = PropertyFile.getProperty(prop, "agi.speech.out")
 
-    override def rpc(request: AgiRequest): AgiResponse = {
-        this.session ! request
-        receive {
-            case agiResponse: AgiResponse => 
-                return agiResponse
-            case _  => 
-                return null                
-        }
-    }
-
     def getData(fileName: String, func: String => Unit) = {
-      rpc(AgiGetData(speechPath + fileName, "", "")) match {
+      remoteCall(session, AgiGetData(speechPath + fileName, "", "")) match {
         case AgiResponse("-1", data, endpoint) =>
             quit("input-error")
         case AgiResponse(result, data, endpoint) =>
@@ -29,7 +21,7 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def quit(messageFile: String): Unit = {
-      rpc(AgiStreamFile(speechPath + messageFile, "\"\"", ""))
+      remoteCall(session, AgiStreamFile(speechPath + messageFile, "\"\"", ""))
       quit()
     }
 
@@ -43,7 +35,7 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def begin() = {
-        rpc(AgiStreamFile(speechPath + "hello-prekonfirm", "\"\"", "")) match {        
+        remoteCall(session, AgiStreamFile(speechPath + "hello-prekonfirm", "\"\"", "")) match {        
             case AgiResponse("-1", data, endpos) =>
                 quit("input-error")
             case AgiResponse("0", data, endpos) =>
@@ -59,6 +51,7 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def getAccountPin(accountID: String) = {
+        val webService = new WebService()
         getData("enter-pin",
             (accountPin) =>
                 webService.isValid(accountID, accountPin) match {
@@ -92,6 +85,7 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def setConfirmationStatus(accountID: String, chequeNumber: String, confirmationStatus: String, amount: String) = {
+        val webService = new WebService()
         
         confirmationStatus match {
             case "1" =>

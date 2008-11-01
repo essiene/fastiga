@@ -14,7 +14,7 @@ class WebService() {
     }
 
     def setConfirmationStatus(accountID: String, chequeNumber: String, confirmationStatus: String, transactionID: String): boolean = {
-        val url = urlMaker.url_for("cheque", "prekonfirm", chequeNumber, 
+        val url = urlMaker.url_for("cheque", "konfirm", chequeNumber, 
                                     Map("status"->confirmationStatus, "accountid"->accountID, "transactionid"->transactionID))
         var retVal = jsonPipe.connect(url)
 
