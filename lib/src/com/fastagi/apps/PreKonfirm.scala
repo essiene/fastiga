@@ -101,11 +101,12 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
             case _ =>
                 quit("input-error")
         }
-        if(webService.setPreConfirmationStatus(accountID, chequeNumber, confirmationStatus, amount)) {
-            playGoodBye(confirmationStatus)
-        }
-        else {
-            quit("input-error")
+
+        webService.setPreConfirmationStatus(accountID, chequeNumber, confirmationStatus, amount) match {
+            case true =>
+                playGoodBye(confirmationStatus)
+            case false =>
+                quit("input-error")
         }
     }
 

@@ -93,6 +93,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
 
     def playCachedFile(accountID: String, transactionID: String, chequeNumber: String) = {
         val cachePath = PropertyFile.getProperty(prop, "agi.speech.cache")
+        //TODO: use path.join equivalent
         rpc(AgiStreamFile(cachePath + transactionID, "\"\"", "")) match {
             case AgiResponse("-1", data, endpos) =>
                 quit("input-error")
@@ -119,11 +120,11 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
                 quit("input-error")
         }
 
-        if(webService.setConfirmationStatus(accountID, chequeNumber, confirmationStatus, transactionID)) {
-            playGoodBye(confirmationStatus)
-        }
-        else {
-            quit("input-error")
+        webService.setConfirmationStatus(accountID, chequeNumber, confirmationStatus, transactionID) match {
+            case true => 
+                playGoodBye(confirmationStatus)
+            case false =>
+                quit("input-error")
         }
     }
 

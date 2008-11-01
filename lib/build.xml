@@ -189,6 +189,6 @@
         </javadoc>
     </target>
 
-    <target name="all" depends="clean, distclean, dist-with-parser"/>
+    <target name="all" depends="distclean, dist-with-parser"/>
     <target name="allclean" depends="clean, testclean, distclean"/>
 </project>

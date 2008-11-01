@@ -9,6 +9,7 @@ class URLMaker {
     )
 
     def url_for(controller: String, action: String, id: String, params: Map[String, String]): String = {
+
         var retVal = urls.get(controller).get().asInstanceOf[String]
 
         if(id != null)
@@ -22,6 +23,7 @@ class URLMaker {
                 retVal = this.append(retVal, param)
             )
         }
+
         println(retVal)
         return retVal
     }

@@ -94,7 +94,7 @@ class PinMan(session: Session) extends Actor with AgiTrait {
                         else
                             quit("pin-change-fail")
                     case false =>
-                        quit("password-too-short")
+                        quit("password-length-incorrect")
                 }
             }
        )

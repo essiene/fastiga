@@ -1,7 +1,6 @@
 package com.fastagi
 
 import scala.actors.Actor
-import com.fastagi.apps.util._
 import com.fastagi.util.PropertyFile
 import com.konfirmagi.webservice.WebService
 

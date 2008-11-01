@@ -19,6 +19,9 @@ clean:
 	@rm -f sql/$(NAME).sql 
 	@rm -rf build
 
+run:
+	@cd lib;make run
+
 dist: clean
 	@mkdir -p $(NAME)-$(VERSION)
 	@cp -r lib $(NAME)-$(VERSION)/

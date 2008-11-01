@@ -1,8 +1,6 @@
 package com.fastagi
 
 import scala.actors.Actor
-import scala.actors.OutputChannel
-import java.io.BufferedReader
 
 case class AgiRequest(var command: String)
 

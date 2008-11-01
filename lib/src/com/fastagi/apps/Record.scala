@@ -60,12 +60,13 @@ class Record(session: Session) extends Actor with AgiTrait {
     }
 
     def getFileName(recorderID: String) = {
-        val fileName = webService.getFileName(recorderID)
-        if(fileName.equals("")) {
-            quit("input-error")
-        } else {
-            val fullPath = PropertyFile.getProperty(prop, "agi.speech.temp") + fileName
-            record(recorderID, fileName, fullPath)                            
+        webService.getFileName(recorderID) match {
+            case "" =>
+              quit("input-error")
+            case fileName =>
+              //TODO: use path.join equivalent here
+              val fullPath = PropertyFile.getProperty(prop, "agi.speech.temp") + fileName
+              record(recorderID, fileName, fullPath)                            
         }
     }
 
