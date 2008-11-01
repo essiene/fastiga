@@ -8,33 +8,14 @@ import com.fastagi.Session
 import com.fastagi.AgiTrait
 import com.fastagi.util.PropertyFile
 import com.konfirmagi.webservice.WebService
+import com.fastagi.apps.common.Common
 
 class Konfirm(session: Session) extends Actor with AgiTrait {
     
     val prop = PropertyFile.loadProperties("/etc/fastagi/agi.properties")
     val speechPath = PropertyFile.getProperty(prop, "agi.speech.out")
+    val common = new Common(this, session, speechPath)
     
-    def getData(fileName: String, func: String => Unit) = {
-      val file = new File(speechPath, fileName)
-      remoteCall(session, AgiGetData(file.getAbsolutePath(), "", "")) match {
-        case AgiResponse("-1", data, endpoint) =>
-            quit("input-error")
-        case AgiResponse(result, data, endpoint) =>
-            func(result)
-      }
-    }
-
-    def quit(messageFile: String): Unit = {
-      val file = new File(speechPath, messageFile)
-      remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "\"\"", ""))
-      quit()
-    }
-
-    def quit(): Unit = {
-      session ! CloseSession
-      this.exit()
-    }
-
     def act() {
         this.begin()
     }
@@ -43,7 +24,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
        val file = new File(speechPath, "hello-konfirm")
        remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "\"\"", "")) match {
            case AgiResponse("-1", data, endpos) =>
-               quit("input-error")
+               common.quit("input-error")
            case AgiResponse("0", data, endpos) =>
                 getAccountNumber
        }
@@ -52,7 +33,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     def getAccountNumber() = {
         remoteCall(session, AgiGetChannelVariable("accountid")) match {
             case AgiResponse("0", data, endpos) =>
-                quit("input-error")
+                common.quit("input-error")
             case AgiResponse("1", accountID, endpos) =>
                 getTransactionID(accountID)
         }
@@ -61,7 +42,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     def getTransactionID(accountID: String) = {
         remoteCall(session, AgiGetChannelVariable("transactionid")) match {
             case AgiResponse("0", data, endpos) =>
-                quit("input-error")
+                common.quit("input-error")
             case AgiResponse("1", transactionID, endpos) =>
                 getChequeNumber(accountID, transactionID)
         }
@@ -70,7 +51,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     def getChequeNumber(accountID: String, transactionID: String) = {
         remoteCall(session, AgiGetChannelVariable("chequenumber")) match {
             case AgiResponse("0", data, endpos) =>
-                quit("input-error")
+                common.quit("input-error")
             case AgiResponse("1", chequeNumber, endpos) =>
                 getAccountPin(accountID, transactionID, chequeNumber)
         }
@@ -78,11 +59,11 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     
     def getAccountPin(accountID: String, transactionID: String, chequeNumber: String) = {
         val webService = new WebService()
-        getData("enter-pin", 
+        common.getData("enter-pin", 
             (accountPin) =>
                 webService.isValid(accountID, accountPin) match {
                     case false =>
-                        quit("auth-fail")
+                        common.quit("auth-fail")
                     case true =>
                         playCachedFile(accountID, transactionID, chequeNumber)
                 }
@@ -94,14 +75,14 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
         val file = new File(cachePath, transactionID)
         remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "\"\"", "")) match {
             case AgiResponse("-1", data, endpos) =>
-                quit("input-error")
+                common.quit("input-error")
             case AgiResponse("0", data, endpos) =>
                 getConfirmationStatus(accountID, transactionID, chequeNumber)
         }
     }
 
     def getConfirmationStatus(accountID: String, transactionID: String, chequeNumber: String) = {
-        getData("confirm-options", 
+        common.getData("confirm-options", 
             (confirmationStatus) =>                
                 setConfirmationStatus(accountID, transactionID, chequeNumber, confirmationStatus)
         )
@@ -116,27 +97,28 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
             case "3" =>
             case "4" =>
             case _ =>
-                quit("input-error")
+                common.quit("input-error")
+                this.exit()
         }
 
         webService.setConfirmationStatus(accountID, chequeNumber, confirmationStatus, transactionID) match {
             case true => 
                 playGoodBye(confirmationStatus)
             case false =>
-                quit("input-error")
+                common.quit("input-error")
         }
     }
 
     def playGoodBye(confirmationStatus: String) {
         confirmationStatus match {
             case "1" =>
-                quit("confirm")
+                common.quit("confirm")
             case "2" =>
-                quit("cancel")
+                common.quit("cancel")
             case "3" => 
-                quit("confirm-contact")
+                common.quit("confirm-contact")
             case "4" =>
-                quit("cancel-contact")
+                common.quit("cancel-contact")
         }
     }
 }
