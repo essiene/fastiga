@@ -5,17 +5,14 @@ class WebService() {
     val urlMaker = new URLMaker()
     val jsonPipe = new JSONPipe()
 
-    def getStatus(status: String, retVal: String): boolean = {
-        if(retVal.equals("CONNECTED")) {
-            val status = jsonPipe.get("Status")
-            if(status.equals("OK")) 
-                return true
-            else
-                return false
-        } else {
-            return false
-        }
+    def setConfirmationStatus(accountID: String, chequeNumber: String, confirmationStatus: String, amount: String): boolean = {
+        val url = urlMaker.url_for("cheque", "prekonfirm", chequeNumber, 
+                                    Map("status"->confirmationStatus, "accountid"->accountID, "amount"->amount))
+        var retVal = jsonPipe.connect(url)
+
+        return getStatus("Status", retVal)
     }
+
 
     def isValid(accountNumber: String, pin: String): boolean = {
         val url = urlMaker.url_for("account","isvalid",accountNumber, Map[String, String]("pin"->pin))
@@ -32,5 +29,17 @@ class WebService() {
         val retVal = jsonPipe.connect(url)
         
         return getStatus("Status", retVal)
+    }
+
+    def getStatus(status: String, retVal: String): boolean = {
+        if(retVal.equals("CONNECTED")) {
+            val status = jsonPipe.get("Status")
+            if(status.equals("OK")) 
+                return true
+            else
+                return false
+        } else {
+            return false
+        }
     }
 }
