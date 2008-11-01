@@ -1,5 +1,7 @@
 package com.fastagi.apps
 
+import java.io.File
+
 import scala.actors.Actor
 import scala.actors.Actor._
 import com.fastagi.Session
@@ -13,7 +15,8 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     val speechPath = PropertyFile.getProperty(prop, "agi.speech.out")
     
     def getData(fileName: String, func: String => Unit) = {
-      remoteCall(session, AgiGetData(speechPath + fileName, "", "")) match {
+      val file = new File(speechPath, fileName)
+      remoteCall(session, AgiGetData(file.getAbsolutePath(), "", "")) match {
         case AgiResponse("-1", data, endpoint) =>
             quit("input-error")
         case AgiResponse(result, data, endpoint) =>
@@ -22,7 +25,8 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def quit(messageFile: String): Unit = {
-      remoteCall(session, AgiStreamFile(speechPath + messageFile, "\"\"", ""))
+      val file = new File(speechPath, messageFile)
+      remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "\"\"", ""))
       quit()
     }
 
@@ -36,7 +40,8 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def begin() {
-       remoteCall(session, AgiStreamFile(speechPath + "hello-konfirm", "\"\"", "")) match {
+       val file = new File(speechPath, "hello-konfirm")
+       remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "\"\"", "")) match {
            case AgiResponse("-1", data, endpos) =>
                quit("input-error")
            case AgiResponse("0", data, endpos) =>
@@ -86,8 +91,8 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
 
     def playCachedFile(accountID: String, transactionID: String, chequeNumber: String) = {
         val cachePath = PropertyFile.getProperty(prop, "agi.speech.cache")
-        //TODO: use path.join equivalent
-        remoteCall(session, AgiStreamFile(cachePath + transactionID, "\"\"", "")) match {
+        val file = new File(cachePath, transactionID)
+        remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "\"\"", "")) match {
             case AgiResponse("-1", data, endpos) =>
                 quit("input-error")
             case AgiResponse("0", data, endpos) =>

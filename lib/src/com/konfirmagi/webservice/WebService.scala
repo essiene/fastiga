@@ -1,5 +1,7 @@
 package com.konfirmagi.webservice
 
+import java.io.File
+
 class WebService() {
     
 
@@ -50,7 +52,8 @@ class WebService() {
         val jsonPipe = new JSONPipe()
 
         val src = fullPath + ".ulaw"
-        val dest = speechPath + fileName + ".ulaw"
+        val file = new File(speechPath, fileName)
+        val dest = file.getAbsolutePath() + ".ulaw"
 
         val url = urlMaker.url_for("recorder", "write", recorderID, Map("from"->src, "to"->dest))
 

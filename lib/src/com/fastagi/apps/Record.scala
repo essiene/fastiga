@@ -1,5 +1,7 @@
 package com.fastagi.apps
 
+import java.io.File
+
 import scala.actors.Actor
 import scala.actors.Actor._
 import com.fastagi.Session
@@ -59,7 +61,8 @@ class Record(session: Session) extends Actor with AgiTrait {
               quit("input-error")
             case fileName =>
               //TODO: use path.join equivalent here
-              val fullPath = PropertyFile.getProperty(prop, "agi.speech.temp") + fileName
+              val file = new File(PropertyFile.getProperty(prop, "agi.speech.temp", "/etc/fastagi/speech/temp"), fileName)
+              val fullPath = file.getAbsolutePath()
               record(recorderID, fileName, fullPath)                            
         }
     }
