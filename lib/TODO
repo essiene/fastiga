@@ -1,0 +1,4 @@
+result can be in the form 200 result= (timeout) - cater for this in the parser
+
+when exceptions are generated, socket should be closed
+

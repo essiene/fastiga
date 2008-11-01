@@ -1,11 +1,11 @@
-package com.fastagi.apps.util
+package com.konfirmagi.webservice
 
 class URLMaker {
     
-    //this is better done in a config file
     val urls = Map(
         "account"->"http://localhost:5000/account/",
-        "recorder"->"http://localhost:5000/recorder/"
+        "recorder"->"http://localhost:5000/recorder/",
+        "cheque"->"http://localhost:5000/cheque/"
     )
 
     def url_for(controller: String, action: String, id: String, params: Map[String, String]): String = {

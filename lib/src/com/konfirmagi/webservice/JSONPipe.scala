@@ -1,4 +1,4 @@
-package com.fastagi.apps.util
+package com.konfirmagi.webservice
 
 import java.io._
 import java.net._
@@ -10,18 +10,20 @@ class JSONPipe {
 
     var jsonAsMap = new Hashtable[String, String]()
 
-    def parse(uri: String) = {
+    def connect(uri: String): String = {
         try {
             val reader = new BufferedReader(new InputStreamReader(new URL(uri).openStream()))
-            val line = reader.readLine()                
+            val line = reader.readLine()    
 
             val json = JSON.parseFull(line)
             val jsonAsList = json.getOrElse(0).asInstanceOf[List[Any]]
 
             jsonAsList.foreach(this.map)
-            println(this.jsonAsMap)
+            println(this.jsonAsMap)        
+            return "CONNECTED"
         } catch {
-            case e: Exception => e.printStackTrace()
+            case e: Exception =>
+                return "CONNECTION LOST"
         }
     }
 
@@ -32,6 +34,9 @@ class JSONPipe {
 
     def get(key: String): String = {
         val value = this.jsonAsMap.get(key)
-        return value
+        if(value == null)
+            return ""
+        else
+            return value
     }
 }
