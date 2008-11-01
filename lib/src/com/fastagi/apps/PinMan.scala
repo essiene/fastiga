@@ -7,31 +7,14 @@ import com.fastagi.Session
 import com.fastagi.AgiTrait
 import com.fastagi.util.PropertyFile
 import com.konfirmagi.webservice.WebService
+import com.fastagi.apps.common.Common
 
 class PinMan(session: Session) extends Actor with AgiTrait {
     
     val prop = PropertyFile.loadProperties("/etc/fastagi/agi.properties")
     val speechPath = PropertyFile.getProperty(prop, "agi.speech.out")
+    val common = new Common(this, session, speechPath)
 
-
-    def getData(fileName: String, func: String => Unit) = {
-      remoteCall(session, AgiGetData(speechPath + fileName, "", "")) match {
-        case AgiResponse("-1", data, endpos) =>
-            quit("input-error")
-        case AgiResponse(result, data, endpos) =>
-            func(result)
-      }
-    }
-
-    def quit(messageFile: String): Unit = {
-      remoteCall(session, AgiStreamFile(speechPath + messageFile, "\"\"", ""))
-      quit()
-    }
-
-    def quit(): Unit = {
-      session ! CloseSession
-      this.exit()
-    }
 
     def act() {
         this.begin()
@@ -40,7 +23,7 @@ class PinMan(session: Session) extends Actor with AgiTrait {
     def begin() = {
         remoteCall(session, AgiStreamFile(speechPath + "hello-pinman", "\"\"", "")) match {        
             case AgiResponse("-1", data, endpos) =>
-                quit("input-error")
+                common.quit("input-error")
             case AgiResponse("0", data, endpos) =>
                 getAccountNumber()
         }
@@ -48,7 +31,7 @@ class PinMan(session: Session) extends Actor with AgiTrait {
     }
 
     def getAccountNumber() = {
-      getData("enter-account-number", 
+      common.getData("enter-account-number", 
         (accountNumber) =>
             getCurrentPin(accountNumber)
       )
@@ -56,11 +39,11 @@ class PinMan(session: Session) extends Actor with AgiTrait {
 
     def getCurrentPin(accountNumber: String) = {
         val webService = new WebService()
-        getData("enter-current-pin",
+        common.getData("enter-current-pin",
             (currentPin) =>
               webService.isValid(accountNumber, currentPin) match {
                 case false =>
-                  quit("auth-fail")
+                  common.quit("auth-fail")
                 case true =>
                   getNewPin(accountNumber)
             }
@@ -68,7 +51,7 @@ class PinMan(session: Session) extends Actor with AgiTrait {
      }
 
     def getNewPin(accountNumber: String) = {
-        getData("enter-new-pin",
+        common.getData("enter-new-pin",
             (newPin) =>
                 getConfirmationPin(accountNumber, newPin)
         )
@@ -76,20 +59,20 @@ class PinMan(session: Session) extends Actor with AgiTrait {
 
     def getConfirmationPin(accountNumber: String, newPin: String) = {
         val webService = new WebService()
-        getData("enter-new-pin-again",
+        common.getData("enter-new-pin-again",
             (confirmationPin) =>            
                 newPin == confirmationPin match {
                   case false =>
-                    quit("password-not-same")
+                    common.quit("password-not-same")
                   case true =>
                     newPin.length() == 4 match {
                         case true =>
                             if(webService.changePin(accountNumber, newPin))
-                                quit("pin-change-success")
+                                common.quit("pin-change-success")
                             else
-                                quit("pin-change-fail")
+                                common.quit("pin-change-fail")
                         case false =>
-                            quit("password-too-short")
+                            common.quit("password-too-short")
                     }
                 }
        )
