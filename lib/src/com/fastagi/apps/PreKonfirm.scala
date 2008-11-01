@@ -5,30 +5,13 @@ import scala.actors.Actor._
 import com.fastagi.Session
 import com.fastagi.util.PropertyFile
 import com.konfirmagi.webservice.WebService
+import com.fastagi.apps.common.Common
 
 class PreKonfirm(session: Session) extends Actor with AgiTrait {
     
     val prop = PropertyFile.loadProperties("/etc/fastagi/agi.properties")
     val speechPath = PropertyFile.getProperty(prop, "agi.speech.out")
-
-    def getData(fileName: String, func: String => Unit) = {
-      remoteCall(session, AgiGetData(speechPath + fileName, "", "")) match {
-        case AgiResponse("-1", data, endpoint) =>
-            quit("input-error")
-        case AgiResponse(result, data, endpoint) =>
-            func(result)
-      }
-    }
-
-    def quit(messageFile: String): Unit = {
-      remoteCall(session, AgiStreamFile(speechPath + messageFile, "\"\"", ""))
-      quit()
-    }
-
-    def quit(): Unit = {
-      session ! CloseSession
-      this.exit()
-    }
+    val common = new Common(this, session, speechPath)
 
     def act() {
         this.begin()
@@ -37,14 +20,14 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
     def begin() = {
         remoteCall(session, AgiStreamFile(speechPath + "hello-prekonfirm", "\"\"", "")) match {        
             case AgiResponse("-1", data, endpos) =>
-                quit("input-error")
+                common.quit("input-error")
             case AgiResponse("0", data, endpos) =>
                 getAccountNumber()
         }
     }
 
     def getAccountNumber() = {
-        getData("enter-account-number",
+        common.getData("enter-account-number",
             (accountID) =>
                 getAccountPin(accountID)
         )
@@ -52,11 +35,11 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
 
     def getAccountPin(accountID: String) = {
         val webService = new WebService()
-        getData("enter-pin",
+        common.getData("enter-pin",
             (accountPin) =>
                 webService.isValid(accountID, accountPin) match {
                     case false =>
-                        quit("auth-fail")
+                        common.quit("auth-fail")
                     case true =>
                         getChequeNumber(accountID)
                 }
@@ -64,21 +47,21 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def getChequeNumber(accountID: String) = {
-        getData("enter-cheque-number",
+        common.getData("enter-cheque-number",
             (chequeNumber) =>
                 getAmount(accountID, chequeNumber)
         )
     }
 
     def getAmount(accountID: String, chequeNumber: String) = {
-        getData("enter-amount",
+        common.getData("enter-amount",
             (amount) =>
                 getConfirmationStatus(accountID, chequeNumber, amount: String)
         )
     }
 
     def getConfirmationStatus(accountID: String, chequeNumber: String, amount: String) = {
-       getData("confirm-options",
+       common.getData("confirm-options",
             (confirmationStatus) =>
                 setConfirmationStatus(accountID, chequeNumber, confirmationStatus, amount)
        )
@@ -93,27 +76,28 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
             case "3" =>
             case "4" =>
             case _ =>
-                quit("input-error")
+                common.quit("input-error")
+                this.exit()
         }
 
         webService.setPreConfirmationStatus(accountID, chequeNumber, confirmationStatus, amount) match {
             case true =>
                 playGoodBye(confirmationStatus)
             case false =>
-                quit("input-error")
+                common.quit("input-error")
         }
     }
 
     def playGoodBye(confirmationStatus: String) {
         confirmationStatus match {
             case "1" =>
-                quit("confirm")
+                common.quit("confirm")
             case "2" =>
-                quit("cancel")
+                common.quit("cancel")
             case "3" => 
-                quit("confirm-contact")
+                common.quit("confirm-contact")
             case "4" =>
-                quit("cancel-contact")
+                common.quit("cancel-contact")
         }
     }
 
