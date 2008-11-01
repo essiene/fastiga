@@ -11,3 +11,4 @@ ClientFace/build
 *.class
 *.html
 lib/src/com/konfirmagi/parser/*.java
+konfirmagi.jar
