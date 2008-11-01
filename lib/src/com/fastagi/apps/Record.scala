@@ -8,30 +8,13 @@ import com.fastagi.Session
 import com.fastagi.AgiTrait
 import com.fastagi.util.PropertyFile
 import com.konfirmagi.webservice.WebService
+import com.fastagi.apps.common.Common
 
 class Record(session: Session) extends Actor with AgiTrait {
     
     val prop = PropertyFile.loadProperties("/etc/fastagi/agi.properties")
     val speechPath = PropertyFile.getProperty(prop, "agi.speech.out")
-
-    def getData(fileName: String, func: String => Unit) = {
-      remoteCall(session, AgiGetData(speechPath + fileName, "", "")) match {
-        case AgiResponse("-1", data, endpoint) =>
-            quit("input-error")
-        case AgiResponse(result, data, endpoint) =>
-            func(result)
-      }
-    }
-
-    def quit(messageFile: String): Unit = {
-      remoteCall(session, AgiStreamFile(speechPath + messageFile, "\"\"", ""))
-      quit()
-    }
-
-    def quit(): Unit = {
-      session ! CloseSession
-      this.exit()
-    }
+    val common = new Common(this, session, speechPath)
 
     def act() {
         this.begin()
@@ -40,14 +23,14 @@ class Record(session: Session) extends Actor with AgiTrait {
     def begin() = {
         remoteCall(session, AgiStreamFile(speechPath + "hello-record", "\"\"", "")) match {
             case AgiResponse("-1", data, endpos) =>
-                quit("input-error")
+                common.quit("input-error")
             case AgiResponse("0", data, endpos) =>
                 getRecorderID()
         }
     }
 
     def getRecorderID() = {
-        getData("enter-recorder-id",
+        common.getData("enter-recorder-id",
             (recorderID) =>
                 getFileName(recorderID)
         )
@@ -58,7 +41,7 @@ class Record(session: Session) extends Actor with AgiTrait {
 
         webService.getFileName(recorderID) match {
             case "" =>
-              quit("input-error")
+              common.quit("input-error")
             case fileName =>
               //TODO: use path.join equivalent here
               val file = new File(PropertyFile.getProperty(prop, "agi.speech.temp", "/etc/fastagi/speech/temp"), fileName)
@@ -70,7 +53,7 @@ class Record(session: Session) extends Actor with AgiTrait {
     def record(recorderID: String, fileName: String, fullPath: String): Unit = {        
         remoteCall(session, AgiRecordFile(fullPath, "ulaw", "#", "-1", "", "", "")) match {
             case AgiResponse("-1", data, endpos) =>
-                quit("input-error")
+                common.quit("input-error")
             case AgiResponse("0", data, endpoint) =>
                 playRecordedFile(recorderID, fileName, fullPath)
         }
@@ -79,14 +62,14 @@ class Record(session: Session) extends Actor with AgiTrait {
     def playRecordedFile(recorderID: String, fileName: String, fullPath: String): Unit = {
         remoteCall(session, AgiStreamFile(fullPath, "\"\"", "")) match {
             case AgiResponse("-1", data, endpos) =>
-                quit("input-error")
+                common.quit("input-error")
             case AgiResponse("0", data, endpoint) =>
                 getRecordingOptions(recorderID, fileName, fullPath)
         }
     }
 
     def getRecordingOptions(recorderID: String, fileName: String, fullPath: String) = {
-        getData("recording-options",
+        common.getData("recording-options",
             (recordingOption) =>
                 recordingOption match {
                     case "3" =>
@@ -103,9 +86,9 @@ class Record(session: Session) extends Actor with AgiTrait {
         val webService = new WebService()
 
         if(webService.saveRecordedFile(recorderID, fileName, fullPath, speechPath)) {
-            quit("thank-you")
+            common.quit("thank-you")
         } else {
-            quit("input-error")
+            common.quit("input-error")
         }
     }
 }

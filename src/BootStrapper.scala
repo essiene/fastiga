@@ -10,8 +10,6 @@ class BootStrapper extends ServletContextListener {
     val log: Logger = Logger.getLogger(this.getClass().getName());
     log.debug("Log4j Successfully Initialised in BootStrapper");
 
-    var appServer: AppServer = null
-    var serverMonitor: ServerMonitor = null
     var acceptor: Acceptor = null
 
     override def contextInitialized(sce: ServletContextEvent) {
@@ -19,12 +17,8 @@ class BootStrapper extends ServletContextListener {
         val appPackage = ivrPP.getAppProperty("app.package")
         val port = Integer.parseInt(ivrPP.getAppProperty("app.server.port"))
 
-        this.appServer = new AppServer(appPackage)
+        val appServer = new AppServer(appPackage)
         appServer.start()
-
-        //serverMonitor = new ServerMonitor(appServer)        
-        //serverMonitor.start()
-        //serverMonitor.trapExit = true
 
         log.debug("Server is Ready!")
         
