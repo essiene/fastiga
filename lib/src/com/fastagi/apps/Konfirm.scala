@@ -13,7 +13,7 @@ import com.fastagi.apps.common.Common
 class Konfirm(session: Session) extends Actor with AgiTrait {
     
     val prop = PropertyFile.loadProperties("/etc/fastagi/agi.properties")
-    val speechPath = PropertyFile.getProperty(prop, "agi.speech.out")
+    val speechPath = PropertyFile.getProperty(prop, "agi.speech.out", "/etc/fastagi/speech/out/")
     val common = new Common(this, session, speechPath)
     
     def act() {
@@ -71,7 +71,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def playCachedFile(accountID: String, transactionID: String, chequeNumber: String) = {
-        val cachePath = PropertyFile.getProperty(prop, "agi.speech.cache")
+        val cachePath = PropertyFile.getProperty(prop, "agi.speech.cache", "/etc/fastagi/cache/")
         val file = new File(cachePath, transactionID)
         remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "\"\"", "")) match {
             case AgiResponse("-1", data, endpos) =>

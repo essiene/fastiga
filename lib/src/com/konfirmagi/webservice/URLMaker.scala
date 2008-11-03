@@ -1,11 +1,17 @@
 package com.konfirmagi.webservice
 
 class URLMaker {
-    
+    val prop = PropertyFile.loadProperties("/etc/fastagi/webservice.properties")
+    val base_url = PropertyFile.getProperty(prop, "base.url", "http://localhost:5000/")
+    val account_url = PropertyFile.getProperty(prop, "account.url", "http://localhost:5000/account/")
+    val recorder_url = PropertyFile.getProperty(prop, "recorder.url", "http://localhost:5000/recorder/")
+    val cheque_url = PropertyFile.getProperty(prop, "cheque.url", "http://localhost:5000/cheque")
+
+
     val urls = Map(
-        "account"->"http://localhost:5000/account/",
-        "recorder"->"http://localhost:5000/recorder/",
-        "cheque"->"http://localhost:5000/cheque/"
+        "account"->account_url,
+        "recorder"->recorder_url,
+        "cheque"->cheque_url
     )
 
     def url_for(controller: String, action: String, id: String, params: Map[String, String]): String = {

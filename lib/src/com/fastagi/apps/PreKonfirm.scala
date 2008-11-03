@@ -10,7 +10,7 @@ import com.fastagi.apps.common.Common
 class PreKonfirm(session: Session) extends Actor with AgiTrait {
     
     val prop = PropertyFile.loadProperties("/etc/fastagi/agi.properties")
-    val speechPath = PropertyFile.getProperty(prop, "agi.speech.out")
+    val speechPath = PropertyFile.getProperty(prop, "agi.speech.out", "/etc/fastagi/speech/out/")
     val common = new Common(this, session, speechPath)
 
     def act() {
