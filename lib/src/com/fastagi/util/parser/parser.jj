@@ -4,7 +4,7 @@ options {
 }
 
 PARSER_BEGIN(Parser)
-    package com.konfirmagi.parser;
+    package com.fastagi.util.parser;
 
     import java.util.*;
 

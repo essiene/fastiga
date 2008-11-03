@@ -2,7 +2,7 @@ package com.fastagi.util
 
 import java.io._
 import java.net._
-import com.konfirmagi.parser._
+import com.fastagi.util.parser.Parser
 import java.util.Hashtable
 
 class Pipe(client: Socket) {    
