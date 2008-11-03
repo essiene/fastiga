@@ -30,7 +30,7 @@ class Record(session: Session) extends Actor with AgiTrait {
     }
 
     def getRecorderID() = {
-        common.getData("enter-recorder-id",
+        common.getData("enter-session-key",
             (recorderID) =>
                 getFileName(recorderID)
         )
@@ -86,9 +86,9 @@ class Record(session: Session) extends Actor with AgiTrait {
         val webService = new WebService()
 
         if(webService.saveRecordedFile(recorderID, fileName, fullPath, speechPath)) {
-            common.quit("thank-you")
+            common.quit("recording-success")
         } else {
-            common.quit("input-error")
+            common.quit("recording-fail")
         }
     }
 }

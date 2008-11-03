@@ -72,7 +72,7 @@ class PinMan(session: Session) extends Actor with AgiTrait {
                             else
                                 common.quit("pin-change-fail")
                         case false =>
-                            common.quit("password-too-short")
+                            common.quit("password-length-mismatch")
                     }
                 }
        )
