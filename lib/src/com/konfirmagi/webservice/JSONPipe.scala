@@ -3,12 +3,10 @@ package com.konfirmagi.webservice
 import java.io._
 import java.net._
 import scala.util.parsing.json._
-import java.util.Hashtable
 
 class JSONPipe {
 
-
-    var jsonAsMap = new Hashtable[String, String]()
+    var jsonAsList = List[Any]()
 
     def connect(uri: String): String = {
         try {
@@ -16,10 +14,9 @@ class JSONPipe {
             val line = reader.readLine()    
 
             val json = JSON.parseFull(line)
-            val jsonAsList = json.getOrElse(0).asInstanceOf[List[Any]]
-
-            jsonAsList.foreach(this.map)
-            println(this.jsonAsMap)        
+            this.jsonAsList = json.getOrElse(0).asInstanceOf[List[Any]]
+            
+            println(this.jsonAsList)
             return "CONNECTED"
         } catch {
             case e: Exception =>
@@ -27,16 +24,15 @@ class JSONPipe {
         }
     }
 
-    def map(args: Any) = {       
-        val tuple = args.asInstanceOf[Tuple2[String, String]]
-        this.jsonAsMap.put(tuple._1, tuple._2)
-    }
-
     def get(key: String): String = {
-        val value = this.jsonAsMap.get(key)
-        if(value == null)
-            return ""
-        else
-            return value
+        this.jsonAsList.foreach(args =>
+            {
+                val tuple = args.asInstanceOf[Tuple2[String, String]]
+                key match {
+                    case tuple._1 => return tuple._2
+                }
+            }
+        )
+        return null
     }
 }
