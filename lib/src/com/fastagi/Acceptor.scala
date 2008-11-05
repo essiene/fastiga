@@ -8,7 +8,6 @@ import java.net._
 class Acceptor(port: Int, appServer:AppServer) extends Actor {
 
     val server = new ServerSocket(port)
-    var sessions = List[Session]()
     var isAlive = true
 
     def act() {
@@ -16,13 +15,11 @@ class Acceptor(port: Int, appServer:AppServer) extends Actor {
             val client = server.accept()
             val session = new Session(client, appServer)
             session.start()
-            sessions = sessions ::: List(session)
         }
     }
 
     def close(): Unit = {
         this.isAlive = false
-        this.sessions.foreach(s => s ! CloseSession)
         server.close()
     }
 }
