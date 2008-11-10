@@ -21,7 +21,7 @@ class Record(session: Session) extends Actor with AgiTrait {
     }
 
     def begin() = {
-        remoteCall(session, AgiStreamFile(speechPath + "hello-record", "\"\"", "")) match {
+        remoteCall(session, AgiStreamFile(speechPath + "hello-record", "", "")) match {
             case AgiResponse("-1", data, endpos) =>
                 common.quit("input-error")
             case AgiResponse("0", data, endpos) =>

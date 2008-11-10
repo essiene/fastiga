@@ -21,7 +21,7 @@ class PinMan(session: Session) extends Actor with AgiTrait {
     }
 
     def begin() = {
-        remoteCall(session, AgiStreamFile(speechPath + "hello-pinman", "\"\"", "")) match {        
+        remoteCall(session, AgiStreamFile(speechPath + "hello-pinman", "", "")) match {        
             case AgiResponse("-1", data, endpos) =>
                 common.quit("input-error")
             case AgiResponse("0", data, endpos) =>

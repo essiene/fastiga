@@ -16,7 +16,7 @@ case class AppInstance(application: Actor)
 case class CloseSession
 
 case class AgiStreamFile(fileName: String, escapeDigits: String, sampleOffset: String) extends AgiRequest("") {    
-    this.command = "STREAM FILE " + fileName + " " + escapeDigits + " " + sampleOffset
+    this.command = "STREAM FILE " + fileName + " \"" + escapeDigits + "\" " + sampleOffset
 }
 
 case class AgiGetData(fileName: String, timeout: String, maxDigits: String) extends AgiRequest("") {

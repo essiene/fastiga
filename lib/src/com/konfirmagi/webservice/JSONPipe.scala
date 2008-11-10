@@ -28,8 +28,10 @@ class JSONPipe {
         this.jsonAsList.foreach(args =>
             {
                 val tuple = args.asInstanceOf[Tuple2[String, String]]
+                println("TUPEL: " + tuple)
                 key match {
                     case tuple._1 => return tuple._2
+                    case _ => 
                 }
             }
         )

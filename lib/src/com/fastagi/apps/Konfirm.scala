@@ -22,42 +22,45 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
 
     def begin() {
        val file = new File(speechPath, "hello-konfirm")
-       remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "\"\"", "")) match {
+       remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "", "")) match {
            case AgiResponse("-1", data, endpos) =>
                common.quit("input-error")
            case AgiResponse("0", data, endpos) =>
-                getAccountNumber
+                getTransactionID()
        }
     }
 
-    def getAccountNumber() = {
-        remoteCall(session, AgiGetChannelVariable("accountid")) match {
-            case AgiResponse("0", data, endpos) =>
-                common.quit("input-error")
-            case AgiResponse("1", accountID, endpos) =>
-                getTransactionID(accountID)
-        }
-    }
-
-    def getTransactionID(accountID: String) = {
-        remoteCall(session, AgiGetChannelVariable("transactionid")) match {
+    def getTransactionID() = {
+        remoteCall(session, AgiGetChannelVariable("callid")) match {
             case AgiResponse("0", data, endpos) =>
                 common.quit("input-error")
             case AgiResponse("1", transactionID, endpos) =>
-                getChequeNumber(accountID, transactionID)
+                getExtras(transactionID)
         }
     }
 
-    def getChequeNumber(accountID: String, transactionID: String) = {
-        remoteCall(session, AgiGetChannelVariable("chequenumber")) match {
+    def getExtras(transactionID: String) {
+        remoteCall(session, AgiGetChannelVariable("extra")) match {
             case AgiResponse("0", data, endpos) =>
                 common.quit("input-error")
-            case AgiResponse("1", chequeNumber, endpos) =>
-                getAccountPin(accountID, transactionID, chequeNumber)
+            case AgiResponse("1", extra, endpos) =>
+                val extraList = List fromString(extra,'+')
+                println(extraList)
+                getAccountNumber(transactionID, extraList)
         }
     }
+
+    def getAccountNumber(transactionID: String, extraList: List[String]) = {
+        println(extraList(0))
+        getChequeNumber(transactionID, extraList(0), extraList)
+    }
+
+    def getChequeNumber(transactionID: String, accountID: String, extraList: List[String]) = {        
+        println(extraList(1))
+        getAccountPin(transactionID, accountID, extraList(1))
+    }
     
-    def getAccountPin(accountID: String, transactionID: String, chequeNumber: String) = {
+    def getAccountPin(transactionID: String, accountID: String, chequeNumber: String) = {
         val webService = new WebService()
         common.getData("enter-pin", 
             (accountPin) =>
@@ -65,30 +68,30 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
                     case false =>
                         common.quit("auth-fail")
                     case true =>
-                        playCachedFile(accountID, transactionID, chequeNumber)
+                        playCachedFile(transactionID, accountID, chequeNumber)
                 }
         )
     }
 
-    def playCachedFile(accountID: String, transactionID: String, chequeNumber: String) = {
+    def playCachedFile(transactionID: String, accountID: String, chequeNumber: String) = {
         val cachePath = PropertyFile.getProperty(prop, "agi.speech.cache", "/etc/fastagi/cache/")
         val file = new File(cachePath, transactionID)
         remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "\"\"", "")) match {
             case AgiResponse("-1", data, endpos) =>
                 common.quit("input-error")
             case AgiResponse("0", data, endpos) =>
-                getConfirmationStatus(accountID, transactionID, chequeNumber)
+                getConfirmationStatus(transactionID, accountID, chequeNumber)
         }
     }
 
-    def getConfirmationStatus(accountID: String, transactionID: String, chequeNumber: String) = {
+    def getConfirmationStatus(transactionID: String, accountID: String, chequeNumber: String) = {
         common.getData("confirm-options", 
             (confirmationStatus) =>                
-                setConfirmationStatus(accountID, transactionID, chequeNumber, confirmationStatus)
+                setConfirmationStatus(transactionID, accountID, chequeNumber, confirmationStatus)
         )
     }
 
-    def setConfirmationStatus(accountID: String, transactionID: String, chequeNumber: String, confirmationStatus: String) = {
+    def setConfirmationStatus(transactionID: String, accountID: String, chequeNumber: String, confirmationStatus: String) = {
         val webService = new WebService()
 
         confirmationStatus match {

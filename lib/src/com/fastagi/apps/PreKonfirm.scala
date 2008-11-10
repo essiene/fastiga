@@ -18,7 +18,7 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def begin() = {
-        remoteCall(session, AgiStreamFile(speechPath + "hello-prekonfirm", "\"\"", "")) match {        
+        remoteCall(session, AgiStreamFile(speechPath + "hello-prekonfirm", "", "")) match {        
             case AgiResponse("-1", data, endpos) =>
                 common.quit("input-error")
             case AgiResponse("0", data, endpos) =>
