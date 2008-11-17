@@ -19,7 +19,7 @@ class Common(agiApp: AgiTrait, session:Session, speechPath: String ) {
 
     def quit(messageFile: String): Unit = {
         val file = new File(speechPath, messageFile)
-        agiApp.remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "\"\"", ""))
+        agiApp.remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "", ""))
         quit()
     }
 

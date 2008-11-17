@@ -21,14 +21,8 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def begin() {
-       val file = new File(speechPath, "hello-konfirm")
-       remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "", "")) match {
-           case AgiResponse("-1", data, endpos) =>
-               common.quit("input-error")
-           case AgiResponse("0", data, endpos) =>
-                getTransactionID()
-       }
-    }
+        getTransactionID()
+    }    
 
     def getTransactionID() = {
         remoteCall(session, AgiGetChannelVariable("callid")) match {
@@ -57,7 +51,18 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
 
     def getChequeNumber(transactionID: String, accountID: String, extraList: List[String]) = {        
         println(extraList(1))
-        getAccountPin(transactionID, accountID, extraList(1))
+        playHello(transactionID, accountID, extraList(1))
+    }
+
+    def playHello(transactionID: String, accountID: String, chequeNumber: String) = {
+        val file = new File(speechPath, "hello-konfirm")
+
+        remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "", "")) match {
+            case AgiResponse("-1", data, endpos) =>
+                setConfirmationStatus(transactionID, accountID, chequeNumber, "0")
+            case AgiResponse("0", data, endpos) =>
+                getAccountPin(transactionID, accountID, chequeNumber)
+        }
     }
     
     def getAccountPin(transactionID: String, accountID: String, chequeNumber: String) = {
@@ -66,11 +71,17 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
             (accountPin) =>
                 webService.isValid(accountID, accountPin) match {
                     case false =>
-                        common.quit("auth-fail")
+                        playAuthFail(transactionID, accountPin, chequeNumber)
                     case true =>
                         playCachedFile(transactionID, accountID, chequeNumber)
                 }
         )
+    }
+
+    def playAuthFail(transactionID: String, accountID: String, chequeNumber: String) = {
+        val file = new File(speechPath, "auth-fail")
+        remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "", "")) 
+        setConfirmationStatus(transactionID, accountID, chequeNumber, "0")
     }
 
     def playCachedFile(transactionID: String, accountID: String, chequeNumber: String) = {
@@ -78,7 +89,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
         val file = new File(cachePath, transactionID)
         remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "\"\"", "")) match {
             case AgiResponse("-1", data, endpos) =>
-                common.quit("input-error")
+                setConfirmationStatus(transactionID, accountID, chequeNumber, "0")
             case AgiResponse("0", data, endpos) =>
                 getConfirmationStatus(transactionID, accountID, chequeNumber)
         }
@@ -91,7 +102,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
         )
     }
 
-    def setConfirmationStatus(transactionID: String, accountID: String, chequeNumber: String, confirmationStatus: String) = {
+    def setConfirmationStatus(transactionID: String, accountID: String, chequeNumber: String, confirmationStatus: String): Unit = {
         val webService = new WebService()
 
         confirmationStatus match {
@@ -99,8 +110,9 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
             case "2" =>
             case "3" =>
             case "4" =>
-            case _ =>
-                common.quit("input-error")
+            case "0" =>
+            case _ =>            
+                setConfirmationStatus(transactionID, accountID, chequeNumber, "0")
                 this.exit()
         }
 
@@ -122,6 +134,8 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
                 common.quit("confirm-contact")
             case "4" =>
                 common.quit("cancel-contact")
+            case "0" =>
+                
         }
     }
 }
