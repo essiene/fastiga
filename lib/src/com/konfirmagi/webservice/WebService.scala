@@ -27,6 +27,44 @@ class WebService() {
         return getStatus("Status", retVal, jsonPipe)
     }
 
+    def getFullPath(fileName: String, appname: String, path: String): String = {
+        val urlMaker = new URLMaker()
+        val jsonPipe = new JSONPipe()
+
+        val url = urlMaker.url_for("speech", "get_fullpath", null, Map("filename" -> fileName, "appname" -> appname, "path" -> path))
+        val retVal = jsonPipe.connect(url)
+
+        if(retVal.equals("CONNECTED")) {
+            val status = jsonPipe.get("Status")
+            if(status.equals("OK")) {
+                return jsonPipe.get("fullpath")
+            } else {
+                return ""
+            }
+        } else {
+            return ""
+        }
+    }
+
+    def getConfirmPath(confirmationStatus: String, appname: String, path: String): String = {
+        val urlMaker = new URLMaker()
+        val jsonPipe = new JSONPipe()
+
+        val url = urlMaker.url_for("speech", "get_confirmpath", null, Map("status" -> confirmationStatus, "appname" -> appname, "path" -> path))
+        val retVal = jsonPipe.connect(url)
+
+        if(retVal.equals("CONNECTED")) {
+            val status = jsonPipe.get("Status")
+            if(status.equals("OK")) {
+                return jsonPipe.get("confirmpath")
+            } else {
+                return ""
+            }
+        } else {
+            return ""
+        }
+    }
+
     def getFileName(recorderID: String): String = {
         val urlMaker = new URLMaker()
         val jsonPipe = new JSONPipe()

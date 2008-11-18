@@ -52,58 +52,97 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     def getChequeNumber(transactionID: String, accountID: String, extraList: List[String]) = {        
         println(extraList(1))
         playHello(transactionID, accountID, extraList(1))
-    }
+    }    
 
     def playHello(transactionID: String, accountID: String, chequeNumber: String) = {
-        val file = new File(speechPath, "hello-konfirm")
+        //val file = new File(speechPath, "hello-konfirm")
+        val filePath = this.getFullPath("hello-konfirm", "recorded")
 
-        remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "", "")) match {
-            case AgiResponse("-1", data, endpos) =>
+        filePath match {
+            case "" =>
                 setConfirmationStatus(transactionID, accountID, chequeNumber, "0")
-            case AgiResponse("0", data, endpos) =>
-                getAccountPin(transactionID, accountID, chequeNumber)
+            case file =>                
+                remoteCall(session, AgiStreamFile(file, "", "")) match {
+                    case AgiResponse("-1", data, endpos) =>
+                        setConfirmationStatus(transactionID, accountID, chequeNumber, "0")
+                    case AgiResponse("0", data, endpos) =>
+                        getAccountPin(transactionID, accountID, chequeNumber)
+                }
         }
     }
-    
+
     def getAccountPin(transactionID: String, accountID: String, chequeNumber: String) = {
         val webService = new WebService()
-        common.getData("enter-pin", 
-            (accountPin) =>
-                webService.isValid(accountID, accountPin) match {
-                    case false =>
-                        playAuthFail(transactionID, accountPin, chequeNumber)
-                    case true =>
-                        playCachedFile(transactionID, accountID, chequeNumber)
-                }
-        )
+
+        val filePath = this.getFullPath("enter-pin", "recorded")
+
+        val errorFile = this.getFullPath("input-error", "recorded")
+        
+        filePath match {
+            case "" =>
+                setConfirmationStatus(transactionID, accountID, chequeNumber, "0")
+            case file =>                
+                common.getData(file, errorFile, 
+                    (accountPin) =>
+                        webService.isValid(accountID, accountPin) match {
+                            case false =>
+                                playAuthFail(transactionID, accountPin, chequeNumber)
+                            case true =>
+                                playCachedFile(transactionID, accountID, chequeNumber)
+                        }
+                )
+            }
     }
 
     def playAuthFail(transactionID: String, accountID: String, chequeNumber: String) = {
-        val file = new File(speechPath, "auth-fail")
-        remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "", "")) 
+        //val file = new File(speechPath, "auth-fail")
+        val filePath = this.getFullPath("auth-fail", "recorded")
+
+        filePath match {
+            case filePath =>                
+                remoteCall(session, AgiStreamFile(filePath, "", "")) 
+        }                
         setConfirmationStatus(transactionID, accountID, chequeNumber, "0")
     }
 
     def playCachedFile(transactionID: String, accountID: String, chequeNumber: String) = {
-        val cachePath = PropertyFile.getProperty(prop, "agi.speech.cache", "/etc/fastagi/cache/")
-        val file = new File(cachePath, transactionID)
-        remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "\"\"", "")) match {
-            case AgiResponse("-1", data, endpos) =>
+        //val cachePath = PropertyFile.getProperty(prop, "agi.speech.cache", "/etc/fastagi/cache/")
+        //val file = new File(cachePath, transactionID)
+        val filePath = this.getFullPath(transactionID, "converted")
+
+        filePath match {
+            case "" =>
                 setConfirmationStatus(transactionID, accountID, chequeNumber, "0")
-            case AgiResponse("0", data, endpos) =>
-                getConfirmationStatus(transactionID, accountID, chequeNumber)
-        }
+            case file =>                
+                remoteCall(session, AgiStreamFile(file, "\"\"", "")) match {
+                    case AgiResponse("-1", data, endpos) =>
+                        setConfirmationStatus(transactionID, accountID, chequeNumber, "0")
+                    case AgiResponse("0", data, endpos) =>
+                        getConfirmationStatus(transactionID, accountID, chequeNumber)
+                }
+            }                
     }
 
     def getConfirmationStatus(transactionID: String, accountID: String, chequeNumber: String) = {
-        common.getData("confirm-options", 
-            (confirmationStatus) =>                
-                setConfirmationStatus(transactionID, accountID, chequeNumber, confirmationStatus)
-        )
+        val filePath = this.getFullPath("confirm-action", "recorded")
+
+        val errorFile = this.getFullPath("input-error", "recorded")
+        
+        filePath match {
+            case "" =>
+                setConfirmationStatus(transactionID, accountID, chequeNumber, "0")
+            case file =>                
+                common.getData(file, errorFile, 
+                    (confirmationStatus) =>                
+                        setConfirmationStatus(transactionID, accountID, chequeNumber, confirmationStatus)
+                )
+            }
     }
 
     def setConfirmationStatus(transactionID: String, accountID: String, chequeNumber: String, confirmationStatus: String): Unit = {
         val webService = new WebService()
+
+        val errorFile = this.getFullPath("input-error", "recorded")
 
         confirmationStatus match {
             case "1" =>
@@ -120,22 +159,44 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
             case true => 
                 playGoodBye(confirmationStatus)
             case false =>
-                common.quit("input-error")
+                common.quit(errorFile)
         }
     }
 
     def playGoodBye(confirmationStatus: String) {
+        val file = this.getConfirmPath(confirmationStatus, "recorded")
+
         confirmationStatus match {
             case "1" =>
-                common.quit("confirm")
+                common.quit(file)
             case "2" =>
-                common.quit("cancel")
+                common.quit(file)
             case "3" => 
-                common.quit("confirm-contact")
+                common.quit(file)
             case "4" =>
-                common.quit("cancel-contact")
+                common.quit(file)
             case "0" =>
                 
+        }
+    }
+
+    def getFullPath(fileName: String, path: String): String = {
+        val webService = new WebService()
+        webService.getFullPath(fileName, "konfirm", path) match {
+            case "" =>
+                return ""
+            case fullPath =>
+                return fullPath
+        }
+    }
+
+    def getConfirmPath(confirmationStatus: String, path: String): String = {
+        val webService = new WebService()
+        webService.getConfirmPath(confirmationStatus, "konfirm", path) match {
+            case "" =>
+                return ""
+            case confirmPath =>
+                return confirmPath
         }
     }
 }

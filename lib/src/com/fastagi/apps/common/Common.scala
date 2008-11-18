@@ -7,19 +7,19 @@ import java.io.File
 
 class Common(agiApp: AgiTrait, session:Session, speechPath: String ) {
 
-    def getData(fileName: String, func: String => unit) = {
-        val file = new File(speechPath, fileName)
-        agiApp.remoteCall(session, AgiGetData(file.getAbsolutePath(), "", "")) match {
+    def getData(fileName: String, errorFile: String, func: String => unit) = {
+        //val file = new File(speechPath, fileName)
+        agiApp.remoteCall(session, AgiGetData(fileName, "", "")) match {
             case AgiResponse("-1", data, endpoint) =>
-                quit("input-error")
+                quit(errorFile)
             case AgiResponse(result, data, endpoint) =>
                 func(result)
         }
     }
 
     def quit(messageFile: String): Unit = {
-        val file = new File(speechPath, messageFile)
-        agiApp.remoteCall(session, AgiStreamFile(file.getAbsolutePath(), "", ""))
+        //val file = new File(speechPath, messageFile)
+        agiApp.remoteCall(session, AgiStreamFile(messageFile, "", ""))
         quit()
     }
 
