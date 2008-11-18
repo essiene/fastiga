@@ -6,15 +6,13 @@ import scala.actors.Actor
 import scala.actors.Actor._
 import com.fastagi.Session
 import com.fastagi.AgiTrait
-import com.fastagi.util.PropertyFile
 import com.konfirmagi.webservice.WebService
 import com.fastagi.apps.common.Common
 
 class Konfirm(session: Session) extends Actor with AgiTrait {
     
-    val prop = PropertyFile.loadProperties("/etc/fastagi/agi.properties")
-    val speechPath = PropertyFile.getProperty(prop, "agi.speech.out", "/etc/fastagi/speech/out/")
-    val common = new Common(this, session, speechPath)
+    val common = new Common(this, session, "")
+    val errorFile = common.getFullPath("input-error", "recorded")
     
     def act() {
         this.begin()
@@ -27,7 +25,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     def getTransactionID() = {
         remoteCall(session, AgiGetChannelVariable("callid")) match {
             case AgiResponse("0", data, endpos) =>
-                common.quit("input-error")
+                common.quit(errorFile)
             case AgiResponse("1", transactionID, endpos) =>
                 getExtras(transactionID)
         }
@@ -36,7 +34,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     def getExtras(transactionID: String) {
         remoteCall(session, AgiGetChannelVariable("extra")) match {
             case AgiResponse("0", data, endpos) =>
-                common.quit("input-error")
+                common.quit(errorFile)
             case AgiResponse("1", extra, endpos) =>
                 val extraList = List fromString(extra,'+')
                 println(extraList)
@@ -55,8 +53,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     }    
 
     def playHello(transactionID: String, accountID: String, chequeNumber: String) = {
-        //val file = new File(speechPath, "hello-konfirm")
-        val filePath = this.getFullPath("hello-konfirm", "recorded")
+        val filePath = common.getFullPath("hello-konfirm", "recorded")
 
         filePath match {
             case "" =>
@@ -74,9 +71,8 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     def getAccountPin(transactionID: String, accountID: String, chequeNumber: String) = {
         val webService = new WebService()
 
-        val filePath = this.getFullPath("enter-pin", "recorded")
+        val filePath = common.getFullPath("enter-pin", "recorded")
 
-        val errorFile = this.getFullPath("input-error", "recorded")
         
         filePath match {
             case "" =>
@@ -95,8 +91,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def playAuthFail(transactionID: String, accountID: String, chequeNumber: String) = {
-        //val file = new File(speechPath, "auth-fail")
-        val filePath = this.getFullPath("auth-fail", "recorded")
+        val filePath = common.getFullPath("auth-fail", "recorded")
 
         filePath match {
             case filePath =>                
@@ -106,9 +101,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def playCachedFile(transactionID: String, accountID: String, chequeNumber: String) = {
-        //val cachePath = PropertyFile.getProperty(prop, "agi.speech.cache", "/etc/fastagi/cache/")
-        //val file = new File(cachePath, transactionID)
-        val filePath = this.getFullPath(transactionID, "converted")
+        val filePath = common.getFullPath(transactionID, "converted")
 
         filePath match {
             case "" =>
@@ -124,9 +117,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def getConfirmationStatus(transactionID: String, accountID: String, chequeNumber: String) = {
-        val filePath = this.getFullPath("confirm-action", "recorded")
-
-        val errorFile = this.getFullPath("input-error", "recorded")
+        val filePath = common.getFullPath("confirm-action", "recorded")
         
         filePath match {
             case "" =>
@@ -141,8 +132,6 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
 
     def setConfirmationStatus(transactionID: String, accountID: String, chequeNumber: String, confirmationStatus: String): Unit = {
         val webService = new WebService()
-
-        val errorFile = this.getFullPath("input-error", "recorded")
 
         confirmationStatus match {
             case "1" =>
@@ -177,16 +166,6 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
                 common.quit(file)
             case "0" =>
                 
-        }
-    }
-
-    def getFullPath(fileName: String, path: String): String = {
-        val webService = new WebService()
-        webService.getFullPath(fileName, "konfirm", path) match {
-            case "" =>
-                return ""
-            case fullPath =>
-                return fullPath
         }
     }
 
