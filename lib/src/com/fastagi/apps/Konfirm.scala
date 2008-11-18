@@ -8,6 +8,7 @@ import com.fastagi.Session
 import com.fastagi.AgiTrait
 import com.konfirmagi.webservice.WebService
 import com.fastagi.apps.common.Common
+import java.io.File
 
 class Konfirm(session: Session) extends Actor with AgiTrait {
     
@@ -101,13 +102,14 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def playCachedFile(transactionID: String, accountID: String, chequeNumber: String) = {
-        val filePath = common.getFullPath(transactionID, "converted")
+        val cacheFile = new File(common.getFullPath("", "converted"), transactionID)
+        val filePath = cacheFile.getAbsolutePath()
 
         filePath match {
             case "" =>
                 setConfirmationStatus(transactionID, accountID, chequeNumber, "0")
             case file =>                
-                remoteCall(session, AgiStreamFile(file, "\"\"", "")) match {
+                remoteCall(session, AgiStreamFile(file, "", "")) match {
                     case AgiResponse("-1", data, endpos) =>
                         setConfirmationStatus(transactionID, accountID, chequeNumber, "0")
                     case AgiResponse("0", data, endpos) =>
@@ -154,19 +156,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
 
     def playGoodBye(confirmationStatus: String) {
         val file = this.getConfirmPath(confirmationStatus, "recorded")
-
-        confirmationStatus match {
-            case "1" =>
-                common.quit(file)
-            case "2" =>
-                common.quit(file)
-            case "3" => 
-                common.quit(file)
-            case "4" =>
-                common.quit(file)
-            case "0" =>
-                
-        }
+        common.quit(file)
     }
 
     def getConfirmPath(confirmationStatus: String, path: String): String = {

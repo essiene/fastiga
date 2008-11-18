@@ -9,62 +9,104 @@ import com.fastagi.apps.common.Common
 
 class PreKonfirm(session: Session) extends Actor with AgiTrait {
     
-    val prop = PropertyFile.loadProperties("/etc/fastagi/agi.properties")
-    val speechPath = PropertyFile.getProperty(prop, "agi.speech.out", "/etc/fastagi/speech/out/")
-    val common = new Common(this, session, speechPath)
+    val common = new Common(this, session, "")
+    val errorFile = common.getFullPath("input-error", "recorded")
 
     def act() {
         this.begin()
     }
 
     def begin() = {
-        remoteCall(session, AgiStreamFile(speechPath + "hello-prekonfirm", "", "")) match {        
-            case AgiResponse("-1", data, endpos) =>
-                common.quit("input-error")
-            case AgiResponse("0", data, endpos) =>
-                getAccountNumber()
+        val filePath = common.getFullPath("hello-prekonfirm", "recorded")
+
+        filePath match {
+            case "" =>
+                common.quit(errorFile)
+            case file =>
+                remoteCall(session, AgiStreamFile(file, "", "")) match {        
+                    case AgiResponse("-1", data, endpos) =>
+                        common.quit(file)
+                    case AgiResponse("0", data, endpos) =>
+                        getAccountNumber()
+                }
         }
     }
 
     def getAccountNumber() = {
-        common.getData("enter-account-number",
-            (accountID) =>
-                getAccountPin(accountID)
-        )
+        val filePath = common.getFullPath("enter-account-number", "recorded")
+
+        filePath match {
+            case "" =>
+                common.quit(errorFile)
+            case file =>
+                common.getData(file, errorFile, 
+                    (accountID) =>
+                        getAccountPin(accountID)
+                )
+        }
     }
 
     def getAccountPin(accountID: String) = {
         val webService = new WebService()
-        common.getData("enter-pin",
-            (accountPin) =>
-                webService.isValid(accountID, accountPin) match {
-                    case false =>
-                        common.quit("auth-fail")
-                    case true =>
-                        getChequeNumber(accountID)
-                }
-        )
+
+        val filePath = common.getFullPath("enter-pin", "recorded")
+
+        filePath match {
+            case "" =>
+                common.quit(errorFile)
+            case file =>
+                common.getData(file, errorFile, 
+                    (accountPin) =>
+                        webService.isValid(accountID, accountPin) match {
+                            case false =>
+                                common.quit("auth-fail")
+                            case true =>
+                                getChequeNumber(accountID)
+                        }
+                )
+        }
     }
 
     def getChequeNumber(accountID: String) = {
-        common.getData("enter-cheque-number",
-            (chequeNumber) =>
-                getAmount(accountID, chequeNumber)
-        )
+        val filePath = common.getFullPath("enter-cheque-number", "recorded")
+
+        filePath match {
+            case "" =>
+                common.quit(errorFile)
+            case file =>
+                common.getData(file, errorFile, 
+                    (chequeNumber) =>
+                        getAmount(accountID, chequeNumber)
+                )
+        }
     }
 
     def getAmount(accountID: String, chequeNumber: String) = {
-        common.getData("enter-amount",
-            (amount) =>
-                getConfirmationStatus(accountID, chequeNumber, amount: String)
-        )
+        val filePath = common.getFullPath("enter-amount", "recorded")
+
+        filePath match {
+            case "" =>
+                common.quit(errorFile)
+            case file =>
+                common.getData(file, errorFile, 
+                    (amount) =>
+                        getConfirmationStatus(accountID, chequeNumber, amount: String)
+                )
+        }
     }
 
     def getConfirmationStatus(accountID: String, chequeNumber: String, amount: String) = {
-       common.getData("confirm-options",
-            (confirmationStatus) =>
-                setConfirmationStatus(accountID, chequeNumber, confirmationStatus, amount)
-       )
+        val filePath = common.getFullPath("confirm-action", "recorded")
+
+        filePath match {
+            case "" =>
+                common.quit(errorFile)
+            case file =>
+                common.getData(file, errorFile, 
+                    (confirmationStatus) =>
+                        setConfirmationStatus(accountID, chequeNumber, confirmationStatus, amount)
+                )
+        }
     }
 
     def setConfirmationStatus(accountID: String, chequeNumber: String, confirmationStatus: String, amount: String) = {
@@ -75,8 +117,10 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
             case "2" =>
             case "3" =>
             case "4" =>
+            case "0" => 
             case _ =>
-                common.quit("input-error")
+                webService.setPreConfirmationStatus(accountID, chequeNumber, "0", amount)
+                common.quit(errorFile)
                 this.exit()
         }
 
@@ -84,21 +128,22 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
             case true =>
                 playGoodBye(confirmationStatus)
             case false =>
-                common.quit("input-error")
+                common.quit(errorFile)
         }
     }
 
     def playGoodBye(confirmationStatus: String) {
-        confirmationStatus match {
-            case "1" =>
-                common.quit("confirm")
-            case "2" =>
-                common.quit("cancel")
-            case "3" => 
-                common.quit("confirm-contact")
-            case "4" =>
-                common.quit("cancel-contact")
-        }
+        val file = this.getConfirmPath(confirmationStatus, "recorded")
+        common.quit(file)
     }
 
+    def getConfirmPath(confirmationStatus: String, path: String): String = {
+        val webService = new WebService()
+        webService.getConfirmPath(confirmationStatus, "konfirm", path) match {
+            case "" =>
+                return ""
+            case confirmPath =>
+                return confirmPath
+        }
+    }
 }
