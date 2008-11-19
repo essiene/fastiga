@@ -3,7 +3,6 @@ package com.konfirmagi.webservice
 import java.io.File
 
 class WebService() {
-    
 
     def setPreConfirmationStatus(accountID: String, chequeNumber: String, confirmationStatus: String, amount: String): boolean = {
         val urlMaker = new URLMaker()
@@ -85,15 +84,37 @@ class WebService() {
         }
     }
 
-    def saveRecordedFile(recorderID: String, fileName: String, fullPath: String, speechPath: String): boolean = {
+    def getAppName(recorderID: String): String = {
         val urlMaker = new URLMaker()
         val jsonPipe = new JSONPipe()
 
-        val src = fullPath + ".ulaw"
-        val file = new File(speechPath, fileName)
-        val dest = file.getAbsolutePath() + ".ulaw"
+        var url = urlMaker.url_for("recorder", "get_appname", recorderID, null)
 
-        val url = urlMaker.url_for("recorder", "write", recorderID, Map("from"->src, "to"->dest))
+        val retVal = jsonPipe.connect(url)
+        
+        if(retVal.equals("CONNECTED")) {
+            val status = jsonPipe.get("Status")
+            if(status.equals("OK")) {
+                return jsonPipe.get("appname")
+            } else {
+                return ""
+            }
+        } else {
+            return ""
+        }
+    }
+
+    def saveRecordedFile(recorderID: String, fileName: String, fullPath: String, appName: String): boolean = {
+        val urlMaker = new URLMaker()
+        val jsonPipe = new JSONPipe()
+
+        val src = fullPath
+        val dest = fileName
+
+        println("SRC: " + src)
+        println("DEST: " + dest)
+
+        val url = urlMaker.url_for("recorder", "write", recorderID, Map("from"->src, "to"->dest, "appname"->appName))
 
         val retVal = jsonPipe.connect(url)
         
@@ -105,6 +126,7 @@ class WebService() {
         val jsonPipe = new JSONPipe()
 
         val url = urlMaker.url_for("account","isvalid",accountNumber, Map[String, String]("pin"->pin))
+        println(url)
 
         val retVal = jsonPipe.connect(url)
 

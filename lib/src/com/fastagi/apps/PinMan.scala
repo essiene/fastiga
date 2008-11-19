@@ -11,14 +11,14 @@ import com.fastagi.apps.common.Common
 class PinMan(session: Session) extends Actor with AgiTrait {
     
     val common = new Common(this, session, "")
-    val errorFile = common.getFullPath("input-error", "recorded")
+    val errorFile = common.getFullPath("input-error", "recorded", "")
 
     def act() {
         this.begin()
     }
 
     def begin() = {
-        val filePath = common.getFullPath("hello-pinman", "recorded")
+        val filePath = common.getFullPath("hello-pinman", "recorded", "pinman")
         filePath match {
             case "" =>
                 common.quit(errorFile)
@@ -33,7 +33,7 @@ class PinMan(session: Session) extends Actor with AgiTrait {
     }
 
     def getAccountNumber() = {      
-        val filePath = common.getFullPath("enter-account-number", "recorded")
+        val filePath = common.getFullPath("enter-account-number", "recorded", "konfirm")
         filePath match {
             case "" =>
                 common.quit(errorFile)
@@ -48,9 +48,9 @@ class PinMan(session: Session) extends Actor with AgiTrait {
     def getCurrentPin(accountNumber: String) = {
         val webService = new WebService()
 
-        val filePath = common.getFullPath("enter-current-pin", "recorded")
+        val filePath = common.getFullPath("enter-current-pin", "recorded", "pinman")
 
-        val authFailPath = common.getFullPath("auth-fail", "recorded")
+        val authFailPath = common.getFullPath("auth-fail", "recorded", "konfirm")
 
         filePath match {
             case "" =>
@@ -69,7 +69,7 @@ class PinMan(session: Session) extends Actor with AgiTrait {
      }
 
     def getNewPin(accountNumber: String) = {
-        val filePath = common.getFullPath("enter-new-pin", "recorded")
+        val filePath = common.getFullPath("enter-new-pin", "recorded", "pinman")
 
         filePath match {
             case "" =>
@@ -85,11 +85,11 @@ class PinMan(session: Session) extends Actor with AgiTrait {
     def getConfirmationPin(accountNumber: String, newPin: String) = {
         val webService = new WebService()
 
-        val filePath = common.getFullPath("enter-new-pin-again", "recorded")
-        val pinErrorPath = common.getFullPath("pin-not-same", "recorded")
-        val successPath = common.getFullPath("pin-change-success", "recorded")
-        val failPath = common.getFullPath("pin-change-fail", "recorded")
-        val lenghtMismatchPath = common.getFullPath("pin-length-mismatch", "recorded")
+        val filePath = common.getFullPath("enter-new-pin-again", "recorded", "pinman")
+        val pinErrorPath = common.getFullPath("pin-not-same", "recorded", "pinman")
+        val successPath = common.getFullPath("pin-change-success", "recorded", "pinman")
+        val failPath = common.getFullPath("pin-change-fail", "recorded", "pinman")
+        val lenghtMismatchPath = common.getFullPath("pin-length-mismatch", "recorded", "pinman")
 
         filePath match {
             case "" =>

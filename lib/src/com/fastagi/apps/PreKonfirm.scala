@@ -10,14 +10,14 @@ import com.fastagi.apps.common.Common
 class PreKonfirm(session: Session) extends Actor with AgiTrait {
     
     val common = new Common(this, session, "")
-    val errorFile = common.getFullPath("input-error", "recorded")
+    val errorFile = common.getFullPath("input-error", "recorded", "")
 
     def act() {
         this.begin()
     }
 
     def begin() = {
-        val filePath = common.getFullPath("hello-prekonfirm", "recorded")
+        val filePath = common.getFullPath("hello-prekonfirm", "recorded", "prekonfirm")
 
         filePath match {
             case "" =>
@@ -33,7 +33,7 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def getAccountNumber() = {
-        val filePath = common.getFullPath("enter-account-number", "recorded")
+        val filePath = common.getFullPath("enter-account-number", "recorded", "konfirm")
 
         filePath match {
             case "" =>
@@ -49,7 +49,9 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
     def getAccountPin(accountID: String) = {
         val webService = new WebService()
 
-        val filePath = common.getFullPath("enter-pin", "recorded")
+        val filePath = common.getFullPath("enter-pin", "recorded", "pinman")
+        val authErrorFile = common.getFullPath("auth-fail", "recorded", "konfirm")
+
 
         filePath match {
             case "" =>
@@ -59,7 +61,7 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
                     (accountPin) =>
                         webService.isValid(accountID, accountPin) match {
                             case false =>
-                                common.quit("auth-fail")
+                                common.quit(authErrorFile)
                             case true =>
                                 getChequeNumber(accountID)
                         }
@@ -68,7 +70,7 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def getChequeNumber(accountID: String) = {
-        val filePath = common.getFullPath("enter-cheque-number", "recorded")
+        val filePath = common.getFullPath("enter-cheque-number", "recorded", "prekonfirm")
 
         filePath match {
             case "" =>
@@ -82,7 +84,7 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def getAmount(accountID: String, chequeNumber: String) = {
-        val filePath = common.getFullPath("enter-amount", "recorded")
+        val filePath = common.getFullPath("enter-amount", "recorded", "prekonfirm")
 
         filePath match {
             case "" =>
@@ -96,7 +98,7 @@ class PreKonfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def getConfirmationStatus(accountID: String, chequeNumber: String, amount: String) = {
-        val filePath = common.getFullPath("confirm-action", "recorded")
+        val filePath = common.getFullPath("confirm-action", "recorded", "konfirm")
 
         filePath match {
             case "" =>

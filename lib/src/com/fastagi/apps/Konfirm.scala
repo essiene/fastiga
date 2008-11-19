@@ -13,7 +13,7 @@ import java.io.File
 class Konfirm(session: Session) extends Actor with AgiTrait {
     
     val common = new Common(this, session, "")
-    val errorFile = common.getFullPath("input-error", "recorded")
+    val errorFile = common.getFullPath("input-error", "recorded", "")
     
     def act() {
         this.begin()
@@ -54,7 +54,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     }    
 
     def playHello(transactionID: String, accountID: String, chequeNumber: String) = {
-        val filePath = common.getFullPath("hello-konfirm", "recorded")
+        val filePath = common.getFullPath("hello-konfirm", "recorded", "konfirm")
 
         filePath match {
             case "" =>
@@ -72,7 +72,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     def getAccountPin(transactionID: String, accountID: String, chequeNumber: String) = {
         val webService = new WebService()
 
-        val filePath = common.getFullPath("enter-pin", "recorded")
+        val filePath = common.getFullPath("enter-pin", "recorded", "konfirm")
 
         
         filePath match {
@@ -92,7 +92,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def playAuthFail(transactionID: String, accountID: String, chequeNumber: String) = {
-        val filePath = common.getFullPath("auth-fail", "recorded")
+        val filePath = common.getFullPath("auth-fail", "recorded", "konfirm")
 
         filePath match {
             case filePath =>                
@@ -102,7 +102,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def playCachedFile(transactionID: String, accountID: String, chequeNumber: String) = {
-        val cacheFile = new File(common.getFullPath("", "converted"), transactionID)
+        val cacheFile = new File(common.getFullPath("", "converted", "konfirm"), transactionID)
         val filePath = cacheFile.getAbsolutePath()
 
         filePath match {
@@ -119,7 +119,7 @@ class Konfirm(session: Session) extends Actor with AgiTrait {
     }
 
     def getConfirmationStatus(transactionID: String, accountID: String, chequeNumber: String) = {
-        val filePath = common.getFullPath("confirm-action", "recorded")
+        val filePath = common.getFullPath("confirm-action", "recorded", "konfirm")
         
         filePath match {
             case "" =>

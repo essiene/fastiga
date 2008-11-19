@@ -16,9 +16,9 @@ class Common(agiApp: AgiTrait, session:Session, speechPath: String ) {
         }
     }
 
-    def getFullPath(fileName: String, path: String): String = {
+    def getFullPath(fileName: String, path: String, appname: String): String = {
         val webService = new WebService()
-        webService.getFullPath(fileName, "konfirm", path) match {
+        webService.getFullPath(fileName, appname, path) match {
             case "" =>
                 return ""
             case fullPath =>
