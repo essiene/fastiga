@@ -1,4 +1,4 @@
-NAME=konfirmagi
+NAME=fastiga
 VERSION=0.1
 
 TARGETS=build/$(NAME).jar

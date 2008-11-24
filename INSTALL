@@ -1,5 +1,5 @@
 To install:
     - Edit install.conf and set sane values. Especially
-      important are values for POLARIS_HOME and CATALINA_HOME
+      important are values for CATALINA_HOME
     - Run make
     - Run make install. 

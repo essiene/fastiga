@@ -1,10 +1,10 @@
-package com.fastagi
+package com.fastiga
 
 import scala.actors.Actor
 import scala.actors.Actor._
 import java.net.Socket
 
-import com.fastagi.util._
+import com.fastiga.util._
 
 class Session(client: Socket, appServer: AppServer) extends Actor {
     

@@ -1,4 +1,4 @@
-package com.konfirmagi.webservice;
+package com.fastiga.util;
 
 import javax.servlet.*;
 import java.io.*;

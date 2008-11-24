@@ -1,8 +1,8 @@
-package com.fastagi.util
+package com.fastiga.util
 
 import java.io._
 import java.net._
-import com.fastagi.util.parser.Parser
+import com.fastiga.util.parser.Parser
 import java.util.Hashtable
 
 class Pipe(client: Socket) {    

@@ -5,9 +5,9 @@
     "http://java.sun.com/dtd/web-app_2_3.dtd">
 
 <web-app>
-    <display-name>konfirmagi</display-name>
+    <display-name>fastiga</display-name>
     <description>
-       konfirmagi 
+       fastiga
     </description>
 
     <servlet>
