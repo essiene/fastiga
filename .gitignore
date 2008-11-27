@@ -9,3 +9,8 @@ build
 *.html
 lib/com/fastiga/util/parser/*.java
 *.jar
+*.zip
+*.tar
+*.war
+*.gz
+*.bz2

@@ -96,8 +96,7 @@
     </target>
 
     <target name="clean" depends="parsergenclean">
-        <delete dir="${build.lib.dir}"/>
-        <delete dir="${build.web.dir}"/>
+        <delete dir="${build.dir}"/>
     </target>
 
 

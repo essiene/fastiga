@@ -1,32 +1,31 @@
 NAME=fastiga
 VERSION=0.1
 
-TARGETS=build/$(NAME).jar
+TARGETS=build/$(NAME).jar build/$(NAME).war
 
 all: $(TARGETS)
 	@echo "All Done"
 
 build/$(NAME).jar: 
-	@cd lib && ant all && cd ..
-	@mkdir -p build
-	@cp lib/dist/$(NAME).jar $@
+	@ant dist-lib
+
+build/$(NAME).war:
+	@ant dist
 
 install: 
 	@./install.sh $(DESTDIR)
 
 clean:
-	@cd lib && ant distclean clean && cd ..
-	@rm -f sql/$(NAME).sql 
-	@rm -rf build
+	@ant clean
 
-run:
-	@cd lib;make run
+distclean:
+	@ant distclean
 
-dist: clean
+dist: distclean
 	@mkdir -p $(NAME)-$(VERSION)
-	@cp -r lib $(NAME)-$(VERSION)/
-	@cp install.* Makefile INSTALL $(NAME).spec $(NAME)-$(VERSION)/
-	@tar -czvf $(NAME)-$(VERSION).tar.gz $(NAME)-$(VERSION)/*
+	@cp -r lib src tests web config $(NAME)-$(VERSION)/
+	@cp build.properties build.xml install.conf install.sh Makefile TODO README INSTALL $(NAME).spec $(NAME)-$(VERSION)/
+	@tar -czvf $(NAME)-$(VERSION).tar.gz $(NAME)-$(VERSION)/
 	@rm -rf $(NAME)-$(VERSION)
 
 rpm: dist
