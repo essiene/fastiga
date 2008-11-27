@@ -1,0 +1,80 @@
+Introduction
+------------
+
+Fastiga is a FastAGI Server built in Scala on the JVM.
+
+The goal is to allow the quick and easy building and deploying
+of AGI applications for Asterisk (or any other AGI supporting system),
+over the FastAGI protocol.
+
+Fastiga is currently hosted in a servlet container, whether this will
+change will probably be decided later when the rest of the goals
+have become more mature.
+
+Fastiga Applications
+--------------------
+Fastiga works as a simple container, hosting AGI applications which are
+Scala Actors. Simple reflection and routing is used to allow easy hosting
+of multiple AGI apps in one Fastiga instance, as they will be loaded by
+Fastiga when requested.
+
+The main goal of Fastiga is to allow the building of AGI applications like
+simple state machines. This has grown from our observation that whenever
+a system is conciously built like a State Machine, its less prone to "eruption" :)
+(a.k.a. bugs). The Fastiga library over time, will grow to include tools
+to make programming like this easier.
+
+Currently, there is a very rudimentary JavaCC generated AGI syntax parser,
+and some small helper functions to get things started. Hopefully, as we
+build more tools, we will make the fastiga environment richer and more
+fun to develop with.
+
+
+Installation
+------------
+
+Installing from source is easy, and needs the following:
+
+- A Java runtime environment (1.5 and above)
+- A recent scala runtime (We use 2.7.1)
+- Make
+- Ant
+- JavaCC (We use 4.0)
+- Tomcat (We use 5.5, but any compatible servlet container should do)
+
+First go through build.properties and fill in appropriate values
+for java.home, scala.home, javacc.home, tomcat.home, etc
+
+$ make
+$ make install
+
+There is also a make target to create and rpm distribution.
+
+$make rpm
+(on an rpm supporting distro, with rpm creation packages installed)
+
+
+Integrating with Asterisk
+-------------------------
+
+See an example Fastiga Application in examples/Example.scala
+
+Compile this with:
+
+scalac -classpath /path/to/fastiga.jar -d /path/to/outputdir examples/Example.scala
+
+This should generate: /path/to/outputdir/com/fastiga/apps/*.class
+
+You can use jar to create a jar of that folder and pop that any where on scala's classpath.
+On my system this is /usr/share/scala/lib/
+
+In asterisk a new extension like:
+
+exten => 111,1,Answer();
+exten => 111,n,AGI(agi://url.to.tomcat/Example);
+exten => 111,n,Hangup();
+exten => failed,1,Hangup();
+
+Presto... you're ready to go.
+
+A more detailed tutorial will be written later
