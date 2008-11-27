@@ -2,8 +2,6 @@
     <description>Weaver generated build script</description>
 
     <property file="build.properties"/>
-    <property file="${user.homedir}/.weaver/weaver.properties"/>
-    <property file="/etc/weaver/weaver.properties"/>
 
     <path id="scala.classpath">
         <pathelement location="${scala.home}/lib/scala-compiler.jar"/>
