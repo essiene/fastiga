@@ -1,4 +1,4 @@
-package com.fastagi.util;
+package com.fastiga.util;
 
 import javax.servlet.*;
 import java.io.*;

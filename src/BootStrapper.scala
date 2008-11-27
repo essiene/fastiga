@@ -1,7 +1,7 @@
 import javax.servlet._
 import org.apache.log4j._
-import com.fastagi._
-import com.fastagi.util._
+import com.fastiga._
+import com.fastiga.util._
 import scala.actors.Actor._
 
 class BootStrapper extends ServletContextListener {

@@ -3,9 +3,7 @@ package com.fastiga.apps
 import scala.actors.Actor
 import scala.actors.Actor._
 
-import com.fastiga.Session
-import com.fastiga.AgiTrait
-import com.fastiga.Messages
+import com.fastiga._
 
 class Example(session: Session) extends Actor with AgiTrait {
     

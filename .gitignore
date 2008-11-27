@@ -1,9 +1,6 @@
 docs
 dist
 build
-ClientFace/dist
-ClientFace/docs
-ClientFace/build
 *~
 *.vim
 *.swp
@@ -11,4 +8,4 @@ ClientFace/build
 *.class
 *.html
 lib/src/com/konfirmagi/parser/*.java
-konfirmagi.jar
+*.jar

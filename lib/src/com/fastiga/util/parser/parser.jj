@@ -44,8 +44,9 @@ Hashtable parseOneLine() throws Exception:
     <CODE> (<SPACE>)+ <RESULT> (<SPACE>)* <EQUALS> (<SPACE>)* (sign=<SIGN>)? rvalue=<DIGIT> 
         (
          (<SPACE>)+
+          (getOthers())?(<SPACE>)*
+          (<BROPEN>(getData())+<BRCLOSE>)?(<SPACE>)*
           (getOthers())?
-          (<BROPEN>(getData())+<BRCLOSE>)?
         )?<EOF>
     {
         table.put("data", data.toString());
