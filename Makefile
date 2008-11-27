@@ -23,7 +23,7 @@ distclean:
 
 dist: distclean
 	@mkdir -p $(NAME)-$(VERSION)
-	@cp -r lib src tests web config $(NAME)-$(VERSION)/
+	@cp -r lib src tests web config examples $(NAME)-$(VERSION)/
 	@cp build.properties build.xml install.conf install.sh Makefile TODO README INSTALL $(NAME).spec $(NAME)-$(VERSION)/
 	@tar -czvf $(NAME)-$(VERSION).tar.gz $(NAME)-$(VERSION)/
 	@rm -rf $(NAME)-$(VERSION)
