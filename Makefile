@@ -1,13 +1,10 @@
 NAME=fastiga
 VERSION=0.1
 
-TARGETS=build/$(NAME).jar build/$(NAME).war
+TARGETS=build/$(NAME).war
 
 all: $(TARGETS)
 	@echo "All Done"
-
-build/$(NAME).jar: 
-	@ant dist-lib
 
 build/$(NAME).war:
 	@ant dist
