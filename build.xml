@@ -12,9 +12,11 @@
 
     <path id="compile.classpath">
 
-        <fileset dir="${lib.dir}">
+        <fileset dir="${web.lib.dir}">
             <include name="*.jar"/>
         </fileset>
+
+        <pathelement location="${build.lib.classes}"/>
 
         <pathelement location="${catalina.common.classes}"/>
 
@@ -39,7 +41,9 @@
 
     <path id="test.classpath">
         <pathelement location="${test.dir}"/>
-        <pathelement location="${build.classes}"/>
+        <pathelement location="${build.lib.classes}"/>
+        <pathelement location="${build.web.classes}"/>
+        <pathelement location="${test.classes}"/>
         <path refid="compile.classpath"/>
     </path>
 
@@ -47,13 +51,26 @@
     <target name="settings">
         <echo message="project.name = ${project.name}"/>
         <echo message=""/>
-        <echo message="document.root = ${document.root}"/>
-        <echo message="document.root.webinf = ${document.root.webinf}"/>
         <echo message="src.dir = ${src.dir}"/>
         <echo message="lib.dir = ${lib.dir}"/>
-        <echo message="build.dir = ${build.dir}"/>
-        <echo message="dist.dir = ${dist.dir}"/>
+        <echo message="doc.dir = ${doc.dir}"/>
+        <echo message="package.dir = ${package.dir}"/>
+        <echo message="document.root = ${document.root}"/>
+        <echo message="document.root.webinf = ${document.root.webinf}"/>
+
+        <echo message="build.lib.dir = ${build.lib.dir}"/>
+        <echo message="build.lib.classes = ${build.lib.classes}"/>
+
+        <echo message="build.web.dir = ${build.web.dir}"/>
+        <echo message="build.web.classes = ${build.web.classes}"/>
+
         <echo message="test.dir = ${test.dir}"/>
+        <echo message="test.classes = ${test.classes}"/>
+
+        <echo message="javacc.srcdir = ${javacc.srcdir}"/>
+        <echo message="javacc.target = ${javacc.target}"/>
+
+        <echo message="dist.dir = ${dist.dir}"/>
         <echo message="config.dir = ${config.dir}"/>
     </target>
 
@@ -67,18 +84,28 @@
         <mkdir dir="${src.dir}"/>
         <mkdir dir="${lib.dir}"/>
         <mkdir dir="${test.dir}"/>
+        <mkdir dir="${package.dir}"/>
+        <mkdir dir="${javacc.srcdir}"/>
         <mkdir dir="${config.dir}"/>
     </target>
 
+    <target name="parsergenclean">
+        <delete>
+            <fileset dir="${javacc.srcdir}">
+                <include name="*.java"/>
+            </fileset>
+        </delete>
+    </target>
 
-    <target name="clean">
-        <delete dir="${build.dir}"/>
+    <target name="clean" depends="parsergenclean">
+        <delete dir="${build.lib.dir}"/>
+        <delete dir="${build.web.dir}"/>
     </target>
 
 
     <target name="testclean">
         <delete>
-            <fileset dir="${test.dir}">
+            <fileset dir="${test.classes}">
                 <include name="*.class"/>
             </fileset>
         </delete>
@@ -91,8 +118,17 @@
 
 
     <target name="resources">
-        <mkdir dir="${build.classes}"/>
-        <copy todir="${build.classes}" includeEmptyDirs="no">
+        <mkdir dir="${build.lib.classes}"/>
+        <copy todir="${build.lib.classes}" includeEmptyDirs="no">
+            <fileset dir="${lib.dir}">
+                <include name="*.properties"/>
+                <include name="*.conf"/>
+                <include name="*.xml"/>
+            </fileset>
+        </copy>
+
+        <mkdir dir="${build.web.classes}"/>
+        <copy todir="${build.web.classes}" includeEmptyDirs="no">
             <fileset dir="${src.dir}">
                 <include name="*.properties"/>
                 <include name="*.conf"/>
@@ -101,26 +137,39 @@
         </copy>
     </target>
 
+    <target name="parsergen">
+        <javacc static="false" target="${javacc.target}" javacchome="${javacc.home}"/>
+    </target>
 
-    <target name="compile">
-        <mkdir dir="${build.classes}"/>
+    <target name="compile" depends="parsergen">
+        <mkdir dir="${build.lib.classes}"/>
         <mkdir dir="${lib.dir}"/>
-        <javac srcdir="${src.dir}" destdir="${build.classes}">
+        <mkdir dir="${web.lib.dir}"/>
+
+        <javac srcdir="${lib.dir}" destdir="${build.lib.classes}">
             <classpath refid="compile.classpath"/>
         </javac>
-        <scalac srcdir="${src.dir}" destdir="${build.classes}" classpathref="compile.classpath">
+        <scalac srcdir="${lib.dir}" destdir="${build.lib.classes}" classpathref="compile.classpath">
+            <include name="**/*.scala"/>
+        </scalac>
+
+        <mkdir dir="${build.web.classes}"/>
+        <javac srcdir="${src.dir}" destdir="${build.web.classes}">
+            <classpath refid="compile.classpath"/>
+        </javac>
+        <scalac srcdir="${src.dir}" destdir="${build.web.classes}" classpathref="compile.classpath">
             <include name="**/*.scala"/>
         </scalac>
     </target>
 
 
     <target name="compiletest" depends="compile">
-        <mkdir dir="${test.dir}"/>
-        <javac srcdir="${test.dir}" destdir="${test.dir}">
+        <mkdir dir="${test.classes}"/>
+        <javac srcdir="${test.dir}" destdir="${test.classes}">
             <classpath refid="test.classpath"/>
             <include name="**/*.java"/>
         </javac>
-        <scalac srcdir="${test.dir}" destdir="${test.dir}">
+        <scalac srcdir="${test.dir}" destdir="${test.classes}">
             <classpath refid="test.classpath"/>
             <include name="**/*.scala"/>
         </scalac>
@@ -133,33 +182,61 @@
 
             <batchtest fork="yes">
                 <formatter type="brief" usefile="false"/>
-                <fileset dir="${test.dir}" includes="**/*.class"/>
+                <fileset dir="${test.classes}" includes="**/*.class"/>
             </batchtest>
         </junit>
     </target>
 
+    <target name="dist-lib" depends="resources, compile">
+        <mkdir dir="${build.lib.dir}"/>
+        <delete dir="${test.classes}"/>
+        <mkdir dir="${dist.dir}"/>
+        <jar basedir="${build.lib.dir}" jarfile="${dist.dir}/${project.name}.jar"/>
+        <copy todir="." file="${dist.dir}/${project.name}.jar"/>
+    </target>
 
-    <target name="dist" depends="resources, compile">
-        <mkdir dir="${build.dir}"/>
-        <copy todir="${build.dir}">
+
+
+    <target name="dist" depends="resources, compile, dist-lib">
+        <mkdir dir="${build.web.dir}"/>
+        <copy todir="${build.web.dir}">
             <fileset dir="${document.root}"/>
         </copy>
 
-        <mkdir dir="${build.lib}"/>
-        <copy todir="${build.lib}">
-            <fileset dir="${lib.dir}">
+        <mkdir dir="${web.lib.dir}"/>
+        <mkdir dir="${build.web.lib}"/>
+        <copy todir="${build.web.lib}">
+            <fileset dir="${web.lib.dir}">
                 <include name="*.jar"/>
             </fileset>
         </copy>
 
         <mkdir dir="${dist.dir}"/>
-        <war basedir="${build.dir}" warfile="${dist.dir}/${project.name}.war" webxml="${document.root.webinf}/web.xml">
+        <war basedir="${build.web.dir}" warfile="${dist.dir}/${project.name}.war" webxml="${document.root.webinf}/web.xml">
         </war>
     </target>
 
     <target name="deploy" depends="dist">
+        <copy todir="${catalina.home}/common/lib" file="${dist.dir}/${project.name}.jar"/>
         <copy todir="${catalina.home}/webapps" file="${dist.dir}/${project.name}.war"/>
     </target>
+
+    <target name="javadoc" description="Generate JavaDoc API docs" depends="dist">
+        <delete dir="${doc.dir}"/>
+        <mkdir dir="${doc.dir}"/>
+        <javadoc sourcepath="${lib.dir}"
+            destdir="${doc.dir}"
+            classpath="${dist.dir}/${project.name}.jar"
+            packagenames="*"
+            author="false"
+            private="false"
+            version="true"
+            windowtitle="${project.name} API Documentation"
+            doctitle="&lt;h1&gt;${project.name} Documentation &lt;/h1&gt;">
+            <classpath refid="compile.classpath"/>
+        </javadoc>
+    </target>
+
 
     <target name="all" depends="clean, distclean, dist"/>
     <target name="allclean" depends="clean, testclean, distclean"/>

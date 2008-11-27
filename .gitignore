@@ -7,5 +7,5 @@ build
 *.swo
 *.class
 *.html
-lib/src/com/konfirmagi/parser/*.java
+lib/com/fastiga/util/parser/*.java
 *.jar
