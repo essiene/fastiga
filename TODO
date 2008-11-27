@@ -12,3 +12,10 @@
 
 - tag us at v0.1 and push to github... any other thing
   will be done on github
+
+
+com.fastiga TODO
+
+result can be in the form 200 result= (timeout) - cater for this in the parser
+when exceptions are generated, socket should be closed
+
