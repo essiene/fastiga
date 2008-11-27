@@ -1,0 +1,12 @@
+- Reorganize the code... under one main project,
+  no need to have two projects nested
+
+- Update the spec file, its still carrying konfirmagi settings
+
+- Refactor the example app, pull out stuff into a utils class
+
+- Review the Java Code and the parser... possibly reorg the
+  file layout for library consistency
+
+- tag us at v0.1 and push to github... any other thing
+  will be done on github
