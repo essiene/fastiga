@@ -190,7 +190,6 @@
         <delete dir="${test.classes}"/>
         <mkdir dir="${dist.dir}"/>
         <jar basedir="${build.lib.dir}" jarfile="${dist.dir}/${project.name}.jar"/>
-        <copy todir="." file="${dist.dir}/${project.name}.jar"/>
     </target>
 
 
